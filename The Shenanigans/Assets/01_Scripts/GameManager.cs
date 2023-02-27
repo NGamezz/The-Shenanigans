@@ -17,7 +17,7 @@ public class GameManager : MonoBehaviour
 
     private bool started = false;
 
-    public int IsTurn { get; set; }
+    public int IsTurn { get; private set; }
 
     private void OnRegainDevice()
     {
@@ -34,35 +34,25 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        foreach (Gamepad gamepad in Gamepad.all)
-        {
-            gamepads.Add(gamepad);
-        }
+        IsTurn = 1;
+        AddGamePad();
     }
 
     private void UpdateGamePads()
     {
         foreach (Gamepad gamepad in Gamepad.all)
         {
-            bool InList = false;
-            for (int i = 0; i < gamepads.Count; i++)
-            {
-                if (gamepads[i] == gamepad)
-                {
-                    InList = true;
-                }
-                if (InList == false)
-                {
-                    gamepads.Add(gamepad);
-                }
-            }
+            if (gamepads.Contains(gamepad)) { break; }
+            gamepads.Add(gamepad);
         }
     }
 
-    public void AddGamePad(Gamepad gamepad)
+    public void AddGamePad()
     {
-        if (gamepads.Contains(gamepad)) { return; }
-        gamepads.Add(gamepad);
+        foreach (Gamepad gamepad in Gamepad.all)
+        {
+            InputSystem.EnableDevice(gamepad);
+        }
     }
 
     private void Awake()
@@ -78,32 +68,27 @@ public class GameManager : MonoBehaviour
         EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
     }
 
-
     /// <summary>
     /// Disable gamepad when it's not their turn, gonna have to figure out a function for that later.
     /// </summary>
     public void ChangeTurn()
     {
         players[IsTurn - 1].CurrentTurn = false;
-        //InputSystem.DisableDevice(device: players[IsTurn - 1].CurrentGamepad);
+        InputSystem.DisableDevice(players[IsTurn - 1].CurrentGamepad);
 
         IsTurn++;
         if (IsTurn > players.Count)
         {
             IsTurn = 1;
         }
+        QuestionHandler.Instance.LaunchQuestion();
 
-        //InputSystem.EnableDevice(device: players[IsTurn - 1].CurrentGamepad);
         players[IsTurn - 1].CurrentTurn = true;
+        InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
     }
 
     private void FixedUpdate()
     {
-        //if (playerInputManager.playerCount >= 4)
-        //{
-        //    playerInputManager.DisableJoining();
-        //}
-
         if (players.Count == 0) return;
         if (started) { return; }
         OnStart();
@@ -116,9 +101,8 @@ public class GameManager : MonoBehaviour
             InputSystem.EnableDevice(gamepad);
         }
 
-        started = true;
-        IsTurn = 1;
         players[IsTurn - 1].CurrentTurn = true;
+        started = true;
     }
 
     private void PlayerJoined()
@@ -126,7 +110,18 @@ public class GameManager : MonoBehaviour
         PlayerController[] _players = FindObjectsOfType<PlayerController>();
         foreach (PlayerController player in _players)
         {
-            if (players.Contains(player)) { return; }
+            if (players.Contains(player))
+            {
+                if (player == players[IsTurn - 1])
+                {
+                    player.CurrentTurn = true;
+                }
+                else
+                {
+                    player.CurrentTurn = false;
+                }
+                return;
+            }
             players.Add(player);
         }
     }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.XInput;
+using TMPro;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,11 +15,21 @@ public class PlayerController : MonoBehaviour
         set
         {
             currentTurn = value;
-            EventSystem.current.SetSelectedGameObject(firstButton);
+            int randomInt = Random.Range(0, options.Length);
+            options[randomInt].text = QuestionHandler.Instance.GetAnswer();
+            foreach (var item in options)
+            {
+                if (item != options[randomInt])
+                {
+                    item.text = QuestionHandler.Instance.GetFakeAnswers();
+                }
+            }
         }
     }
 
     public Gamepad CurrentGamepad { get; private set; }
+
+    [SerializeField] private TMP_Text[] options;
     [SerializeField] private float moveSpeed;
     [SerializeField] private GameObject firstButton;
     private PlayerInput playerInput;
@@ -34,17 +46,15 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
-        //if (playerInput.devices[0] != null)
-        //{
-        //    var device = playerInput.devices[0];
-        //    if (device.GetType() == typeof(Gamepad))
-        //    {
-        //        CurrentGamepad = (Gamepad)device;
-        //        GameManager.Instance.AddGamePad(CurrentGamepad);
-        //    }
-        //}
-
+        EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
+
+        var device = playerInput.devices[0];
+        if (device.GetType() == typeof(XInputControllerWindows))
+        {
+            CurrentGamepad = (XInputControllerWindows)device;
+        }
+
         Cursor.lockState = CursorLockMode.Locked;
         SetupStateMachine();
     }
@@ -71,9 +81,11 @@ public class PlayerController : MonoBehaviour
         if (!currentTurn) { return; }
         if (button)
         {
+            button = false;
             GameManager.Instance.ChangeTurn();
         }
-        transform.Translate(new Vector3(movementInput.x, movementInput.y, 0) * moveSpeed * Time.deltaTime);
+        //Was for testing purposes
+        transform.Translate(moveSpeed * Time.deltaTime * new Vector3(movementInput.x, movementInput.y, 0));
     }
 
     public void RegainDevice()

@@ -8,42 +8,58 @@ public class Question
 {
     public string QuestionText;
     public string Answer;
-    public bool Used = false;
 }
-
 
 public class QuestionHandler : MonoBehaviour
 {
     public static QuestionHandler Instance { get; private set; }
 
     [SerializeField] private List<Question> questions = new();
-
+    [SerializeField] private List<Question> usedQuestions = new();
     [SerializeField] private TMP_Text questionText;
+    [SerializeField] private List<string> fakeAnswers = new();
+    [SerializeField] private List<string> usedFakeAnswers = new();
 
-    public Question GetQuestion(int index, bool random)
+    private Question currentQuestion;
+
+    public Question GetQuestion()
     {
-        if (random)
-        {
-            return questions[Random.Range(0, questions.Count)];
-        }
-        else
-        {
-            return questions[index];
-        }
-    }
-    public void LaunchQuestion(int index, bool random)
-    {
-        questionText.text = GetQuestion(index, random).QuestionText;
+        if (questions.Count == 0) { return null; }
+
+        currentQuestion = questions[Random.Range(0, questions.Count)];
+
+        usedQuestions.Add(currentQuestion);
+        questions.Remove(currentQuestion);
+        return currentQuestion;
     }
 
-    public string GetAnswer(int index)
+    public void LaunchQuestion()
     {
-        string answer = questions[index].Answer;
+        questionText.text = GetQuestion()?.QuestionText;
+    }
+
+    public string GetAnswer()
+    {
+        string answer = currentQuestion.Answer;
         return answer;
+    }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public string GetFakeAnswers()
+    {
+        if (fakeAnswers.Count == 0) { return "nothing"; }
+        string current = fakeAnswers[Random.Range(0, fakeAnswers.Count)];
+        usedFakeAnswers.Add(current);
+        fakeAnswers.Remove(current);
+        return current;
     }
 
     private void Start()
     {
-        LaunchQuestion(0, true);
+        LaunchQuestion();
     }
 }

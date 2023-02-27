@@ -307,6 +307,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dde868424e9fa34ea67d8b46b5440c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  options:
+  - {fileID: 7544282540691662149}
+  - {fileID: 7730996394153782405}
+  - {fileID: 3331648934438752341}
   moveSpeed: 5
   firstButton: {fileID: 5208468398448489517}
 --- !u!1 &2328622382378438272

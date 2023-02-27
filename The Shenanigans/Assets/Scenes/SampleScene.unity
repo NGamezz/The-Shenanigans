@@ -813,14 +813,17 @@ MonoBehaviour:
   questions:
   - QuestionText: Why Hello There
     Answer: Hello
-    Used: 0
   - QuestionText: Solid question isn't it?
     Answer: Certainly
-    Used: 0
   - QuestionText: Howdy
     Answer: Howdy
-    Used: 0
+  usedQuestions: []
   questionText: {fileID: 154302754}
+  fakeAnswers:
+  - No
+  - FakeAnswer
+  - FakeAnswe2
+  usedFakeAnswers: []
 --- !u!1 &1411591472
 GameObject:
   m_ObjectHideFlags: 0
@@ -885,7 +888,7 @@ MonoBehaviour:
   m_NotificationBehavior: 0
   m_MaxPlayerCount: 4
   m_AllowJoining: 1
-  m_JoinBehavior: 0
+  m_JoinBehavior: 1
   m_PlayerJoinedEvent:
     m_PersistentCalls:
       m_Calls: []
