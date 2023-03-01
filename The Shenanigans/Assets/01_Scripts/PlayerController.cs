@@ -15,6 +15,7 @@ public class PlayerController : MonoBehaviour
         set
         {
             currentTurn = value;
+            uiObject.SetActive(value);
             int randomInt = Random.Range(0, options.Length);
             options[randomInt].text = QuestionHandler.Instance.GetAnswer();
             foreach (var item in options)
@@ -32,6 +33,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TMP_Text[] options;
     [SerializeField] private float moveSpeed;
     [SerializeField] private GameObject firstButton;
+    [SerializeField] private GameObject uiObject;
     private PlayerInput playerInput;
     private StateMachine stateMachine;
     private Vector2 movementInput;

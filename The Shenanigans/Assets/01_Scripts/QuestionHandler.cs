@@ -8,6 +8,8 @@ public class Question
 {
     public string QuestionText;
     public string Answer;
+    public List<string> FakeAnswers;
+    public List<string> UsedFakeAnswers;
 }
 
 public class QuestionHandler : MonoBehaviour
@@ -17,8 +19,6 @@ public class QuestionHandler : MonoBehaviour
     [SerializeField] private List<Question> questions = new();
     [SerializeField] private List<Question> usedQuestions = new();
     [SerializeField] private TMP_Text questionText;
-    [SerializeField] private List<string> fakeAnswers = new();
-    [SerializeField] private List<string> usedFakeAnswers = new();
 
     private Question currentQuestion;
 
@@ -51,10 +51,10 @@ public class QuestionHandler : MonoBehaviour
 
     public string GetFakeAnswers()
     {
-        if (fakeAnswers.Count == 0) { return "nothing"; }
-        string current = fakeAnswers[Random.Range(0, fakeAnswers.Count)];
-        usedFakeAnswers.Add(current);
-        fakeAnswers.Remove(current);
+        if (currentQuestion.FakeAnswers.Count == 0) { return "nothing"; }
+        string current = currentQuestion.FakeAnswers[Random.Range(0, currentQuestion.FakeAnswers.Count)];
+        currentQuestion.UsedFakeAnswers.Add(current);
+        currentQuestion.FakeAnswers.Remove(current);
         return current;
     }
 

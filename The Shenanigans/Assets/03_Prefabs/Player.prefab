@@ -313,6 +313,7 @@ MonoBehaviour:
   - {fileID: 3331648934438752341}
   moveSpeed: 5
   firstButton: {fileID: 5208468398448489517}
+  uiObject: {fileID: 2328622382378438272}
 --- !u!1 &2328622382378438272
 GameObject:
   m_ObjectHideFlags: 0

@@ -81,10 +81,11 @@ public class GameManager : MonoBehaviour
         {
             IsTurn = 1;
         }
-        QuestionHandler.Instance.LaunchQuestion();
 
         players[IsTurn - 1].CurrentTurn = true;
         InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
+
+        QuestionHandler.Instance.LaunchQuestion();
     }
 
     private void FixedUpdate()
