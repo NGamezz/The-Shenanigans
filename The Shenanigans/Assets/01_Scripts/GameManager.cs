@@ -75,6 +75,9 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void ChangeTurn()
     {
+        QuestionHandler.Instance.LaunchQuestion();
+        if (players.Count < 2) { return; }
+
         players[IsTurn - 1].CurrentTurn = false;
         InputSystem.DisableDevice(players[IsTurn - 1].CurrentGamepad);
 
@@ -83,12 +86,18 @@ public class GameManager : MonoBehaviour
         {
             IsTurn = 1;
         }
-        QuestionHandler.Instance.LaunchQuestion();
+
+        if (!players[IsTurn - 1].Correct)
+        {
+            IsTurn++;
+            if (IsTurn > players.Count)
+            {
+                IsTurn = 1;
+            }
+        }
 
         players[IsTurn - 1].CurrentTurn = true;
         InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
-
-        QuestionHandler.Instance.LaunchQuestion();
     }
 
     private void FixedUpdate()
@@ -119,7 +128,6 @@ public class GameManager : MonoBehaviour
                 if (player == players[IsTurn - 1])
                 {
                     player.CurrentTurn = true;
-                    player.SetPlayerIndex(IsTurn - 1);
                 }
                 else
                 {

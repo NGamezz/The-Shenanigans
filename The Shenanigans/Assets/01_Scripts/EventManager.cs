@@ -7,12 +7,13 @@ public enum EventType
     JoinPlayer,
     DeviceLost,
     RegainDevice,
-    StartGame
+    StartGame,
+    StartTrivia
 }
 
 public static class EventManager
 {
-    public static Dictionary<EventType, System.Action> events = new Dictionary<EventType, System.Action>();
+    public static Dictionary<EventType, System.Action> events = new();
 
     public static void AddListener(EventType type, System.Action action)
     {
@@ -31,7 +32,6 @@ public static class EventManager
 
     public static void InvokeEvent(EventType type)
     {
-        if (!events.ContainsKey(type)) { return; }
         events[type]?.Invoke();
     }
 }

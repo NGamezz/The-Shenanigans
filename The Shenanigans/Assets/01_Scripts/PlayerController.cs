@@ -3,8 +3,6 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.XInput;
 using TMPro;
-using UnityEngine.LowLevel;
-using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -17,23 +15,17 @@ public class PlayerController : MonoBehaviour
         set
         {
             currentTurn = value;
-            int randomInt = Random.Range(0, options.Length);
-            options[randomInt].text = QuestionHandler.Instance.GetAnswer();
-            foreach (var item in options)
-            {
-                if (item != options[randomInt])
-                {
-                    item.text = QuestionHandler.Instance.GetFakeAnswers();
-                }
-            }
+            if (!gameStarted) { return; }
+            playerMesh[WhichPlayerType].SetActive(value);
+            Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
 
-    public GameObject playerMesh;
-    public int WhichPlayerType;
-
-    private int playerIndex = 0;
-
+    public bool Correct;
+    private bool gameStarted = false;
+    public int Score { get; private set; }
+    [SerializeField] private GameObject[] playerMesh;
+    public int WhichPlayerType { get; private set; }
     public Gamepad CurrentGamepad { get; private set; }
 
     [SerializeField] private TMP_Text[] options;
@@ -41,21 +33,28 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
     private PlayerInput playerInput;
-    private StateMachine stateMachine;
-    private Vector2 movementInput;
     private bool currentTurn;
 
     private bool button;
 
-    public void SetPlayerIndex(int playerIndex)
-    {
-        this.playerIndex = playerIndex;
-    }
-
     public void ChoosePlayer(int playerIndex)
     {
         WhichPlayerType = playerIndex;
-        EventManager.InvokeEvent(EventType.StartGame);
+    }
+
+    private void AnswerHandling()
+    {
+        int randomInt = Random.Range(0, options.Length);
+        options[randomInt].text = QuestionHandler.Instance.GetAnswer();
+        foreach (var item in options)
+        {
+            if (item != options[randomInt])
+            {
+                item.text = QuestionHandler.Instance.GetFakeAnswers();
+            }
+        }
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
     private void Awake()
@@ -65,56 +64,46 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.StartGame, () => OnStart());
+        EventManager.AddListener(EventType.StartTrivia, () => GameStart());
+    }
+
+    private void GameStart()
+    {
+        Debug.Log("Player Start");
+        Invoke(nameof(AnswerHandling), 0.7f);
+        gameStarted = true;
+        uiObject.SetActive(true);
+        playerMesh[WhichPlayerType].SetActive(true);
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
     private void Start()
     {
-        playerMesh.transform.position = new Vector3(playerIndex + 50 * 100, transform.position.y, transform.position.z);
-    }
-
-    private void OnStart()
-    {
+        EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputController))
+        if (device.GetType() == typeof(XInputControllerWindows))
         {
-            CurrentGamepad = (XInputController)device;
+            CurrentGamepad = (XInputControllerWindows)device;
         }
-
         Cursor.lockState = CursorLockMode.Locked;
-        SetupStateMachine();
     }
 
-    private void SetupStateMachine()
+    public void Answer(int answer)
     {
-        IState player1 = new Player1State(this);
-        IState player2 = new Player2State(this);
-        IState player3 = new Player3State(this);
-        IState player4 = new Player4State(this);
-
-        stateMachine = new StateMachine();
-
-        stateMachine.AddTransition(new Transition(null, player1, () => GameManager.Instance.IsTurn == 1));
-        stateMachine.AddTransition(new Transition(null, player2, () => GameManager.Instance.IsTurn == 2));
-        stateMachine.AddTransition(new Transition(null, player3, () => GameManager.Instance.IsTurn == 3));
-        stateMachine.AddTransition(new Transition(null, player4, () => GameManager.Instance.IsTurn == 4));
-
-        stateMachine.SwitchState(player1);
-    }
-
-    private void Update()
-    {
-        if (!currentTurn) { return; }
-        if (button)
+        if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
         {
-            button = false;
-            GameManager.Instance.ChangeTurn();
+            Correct = true;
         }
-        //Was for testing purposes
-        transform.Translate(moveSpeed * Time.deltaTime * new Vector3(movementInput.x, movementInput.y, 0));
+        else
+        {
+            Correct = false;
+        }
+        GameManager.Instance.ChangeTurn();
+        AnswerHandling();
     }
 
     public void RegainDevice()
@@ -130,6 +119,4 @@ public class PlayerController : MonoBehaviour
     }
 
     public void ChangeTurn(InputAction.CallbackContext context) => button = context.ReadValueAsButton();
-
-    public void OnMove(InputAction.CallbackContext context) => movementInput = context.ReadValue<Vector2>();
 }

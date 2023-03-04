@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.Video;
 
 [System.Serializable]
 public class Question
@@ -21,56 +22,66 @@ public class QuestionHandler : MonoBehaviour
     [SerializeField] private List<Question> usedQuestions = new();
     [SerializeField] private TMP_Text questionText;
 
-    private Question currentQuestion;
+    public Question CurrentQuestion { get; private set; }
 
+
+    //Still gotta fix double calling
     public Question GetQuestion()
     {
         if (questions.Count == 0) { return null; }
 
-        currentQuestion = questions[Random.Range(0, questions.Count)];
+        CurrentQuestion = questions[Random.Range(0, questions.Count)];
 
-        usedQuestions.Add(currentQuestion);
-        questions.Remove(currentQuestion);
-        return currentQuestion;
+        usedQuestions.Add(CurrentQuestion);
+        questions.Remove(CurrentQuestion);
+        return CurrentQuestion;
     }
 
     public void LaunchQuestion()
     {
-        questionText.text = GetQuestion()?.QuestionText;
+        if (questionText == null) { return; }
+        questionText.text = GetQuestion().QuestionText;
     }
 
     public string GetAnswer()
     {
-        string answer = currentQuestion.Answer;
+        string answer = CurrentQuestion.Answer;
         return answer;
     }
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.StartGame, () => StartGame());
+        EventManager.AddListener(EventType.StartTrivia, () => Starting());
     }
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
     }
 
-    private void StartGame()
+    public void SetQuestionObject(TMP_Text textObject)
     {
-        questionText = FindObjectOfType<QuestionText>().GetComponent<TMP_Text>();
+        questionText = textObject;
     }
 
     public string GetFakeAnswers()
     {
-        if (currentQuestion.FakeAnswers.Count == 0) { return "nothing"; }
-        string current = currentQuestion.FakeAnswers[Random.Range(0, currentQuestion.FakeAnswers.Count)];
-        currentQuestion.UsedFakeAnswers.Add(current);
-        currentQuestion.FakeAnswers.Remove(current);
+        if (CurrentQuestion.FakeAnswers.Count == 0) { return "nothing"; }
+        string current = CurrentQuestion.FakeAnswers[Random.Range(0, CurrentQuestion.FakeAnswers.Count)];
+        CurrentQuestion.UsedFakeAnswers.Add(current);
+        CurrentQuestion.FakeAnswers.Remove(current);
         return current;
     }
 
-    private void Start()
+    private void Starting()
     {
-        LaunchQuestion();
+        Invoke(nameof(LaunchQuestion), 0.6f);
     }
 }
