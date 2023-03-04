@@ -8,8 +8,9 @@ public class Question
 {
     public string QuestionText;
     public string Answer;
-    public List<string> FakeAnswers;
-    public List<string> UsedFakeAnswers;
+
+    public List<string> FakeAnswers = new();
+    public List<string> UsedFakeAnswers = new();
 }
 
 public class QuestionHandler : MonoBehaviour
@@ -44,9 +45,19 @@ public class QuestionHandler : MonoBehaviour
         return answer;
     }
 
+    private void OnEnable()
+    {
+        EventManager.AddListener(EventType.StartGame, () => StartGame());
+    }
+
     private void Awake()
     {
         Instance = this;
+    }
+
+    private void StartGame()
+    {
+        questionText = FindObjectOfType<QuestionText>().GetComponent<TMP_Text>();
     }
 
     public string GetFakeAnswers()

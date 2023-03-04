@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.XInput;
 using TMPro;
+using UnityEngine.LowLevel;
+using Unity.VisualScripting;
 
 public class PlayerController : MonoBehaviour
 {
@@ -15,7 +17,6 @@ public class PlayerController : MonoBehaviour
         set
         {
             currentTurn = value;
-            uiObject.SetActive(value);
             int randomInt = Random.Range(0, options.Length);
             options[randomInt].text = QuestionHandler.Instance.GetAnswer();
             foreach (var item in options)
@@ -27,6 +28,11 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+
+    public GameObject playerMesh;
+    public int WhichPlayerType;
+
+    private int playerIndex = 0;
 
     public Gamepad CurrentGamepad { get; private set; }
 
@@ -41,20 +47,41 @@ public class PlayerController : MonoBehaviour
 
     private bool button;
 
+    public void SetPlayerIndex(int playerIndex)
+    {
+        this.playerIndex = playerIndex;
+    }
+
+    public void ChoosePlayer(int playerIndex)
+    {
+        WhichPlayerType = playerIndex;
+        EventManager.InvokeEvent(EventType.StartGame);
+    }
+
     private void Awake()
     {
         EventManager.InvokeEvent(EventType.JoinPlayer);
     }
 
+    private void OnEnable()
+    {
+        EventManager.AddListener(EventType.StartGame, () => OnStart());
+    }
+
     private void Start()
+    {
+        playerMesh.transform.position = new Vector3(playerIndex + 50 * 100, transform.position.y, transform.position.z);
+    }
+
+    private void OnStart()
     {
         EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputControllerWindows))
+        if (device.GetType() == typeof(XInputController))
         {
-            CurrentGamepad = (XInputControllerWindows)device;
+            CurrentGamepad = (XInputController)device;
         }
 
         Cursor.lockState = CursorLockMode.Locked;
@@ -95,8 +122,6 @@ public class PlayerController : MonoBehaviour
         GameManager.Instance.LostDevice = this;
         EventManager.InvokeEvent(EventType.RegainDevice);
     }
-
-    public void JoinPlayer(InputAction.CallbackContext context) => GameManager.playerInputManager.JoinPlayerFromActionIfNotAlreadyJoined(context);
 
     public void DeviceLost()
     {

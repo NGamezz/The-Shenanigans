@@ -8,10 +8,11 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     [SerializeField] private List<PlayerController> players = new();
+    public List<PlayerController> Players { get { return players; } }
 
     [SerializeField] private List<Gamepad> gamepads = new();
 
-    public static PlayerInputManager playerInputManager { get; private set; }
+    public static PlayerInputManager PlayerInputManager { get; private set; }
 
     public PlayerController LostDevice { get; set; }
 
@@ -58,7 +59,7 @@ public class GameManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        playerInputManager = FindObjectOfType<PlayerInputManager>();
+        PlayerInputManager = FindObjectOfType<PlayerInputManager>();
     }
 
     private void OnEnable()
@@ -66,6 +67,7 @@ public class GameManager : MonoBehaviour
         EventManager.AddListener(EventType.JoinPlayer, () => PlayerJoined());
         EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
         EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
+        EventManager.AddListener(EventType.StartGame, () => OnStart());
     }
 
     /// <summary>
@@ -81,6 +83,7 @@ public class GameManager : MonoBehaviour
         {
             IsTurn = 1;
         }
+        QuestionHandler.Instance.LaunchQuestion();
 
         players[IsTurn - 1].CurrentTurn = true;
         InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
@@ -92,7 +95,7 @@ public class GameManager : MonoBehaviour
     {
         if (players.Count == 0) return;
         if (started) { return; }
-        OnStart();
+        EventManager.InvokeEvent(EventType.StartGame);
     }
 
     private void OnStart()
@@ -116,6 +119,7 @@ public class GameManager : MonoBehaviour
                 if (player == players[IsTurn - 1])
                 {
                     player.CurrentTurn = true;
+                    player.SetPlayerIndex(IsTurn - 1);
                 }
                 else
                 {

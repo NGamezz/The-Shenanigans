@@ -6,7 +6,8 @@ public enum EventType
 {
     JoinPlayer,
     DeviceLost,
-    RegainDevice
+    RegainDevice,
+    StartGame
 }
 
 public static class EventManager
