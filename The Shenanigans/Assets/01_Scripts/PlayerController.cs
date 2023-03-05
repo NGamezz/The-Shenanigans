@@ -16,26 +16,53 @@ public class PlayerController : MonoBehaviour
         {
             currentTurn = value;
             if (!gameStarted) { return; }
+            uiObject.SetActive(value);
             playerMesh[WhichPlayerType].SetActive(value);
             Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
 
-    public bool Correct;
-    private bool gameStarted = false;
-    public int Score { get; private set; }
-    [SerializeField] private GameObject[] playerMesh;
-    public int WhichPlayerType { get; private set; }
     public Gamepad CurrentGamepad { get; private set; }
+    public int WhichPlayerType { get; private set; }
+    public bool SkipTurn { get; set; }
+    public int Score { get; private set; }
 
-    [SerializeField] private TMP_Text[] options;
-    [SerializeField] private float moveSpeed;
+    [SerializeField] private GameObject[] playerMesh;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
+    [SerializeField] private TMP_Text[] options;
+    [SerializeField] private bool currentTurn;
+    [SerializeField] private float moveSpeed;
+    private bool gameStarted = false;
     private PlayerInput playerInput;
-    private bool currentTurn;
+    public void Answer(int answer)
+    {
+        if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
+        {
+            SkipTurn = false;
+            GameManager.Instance.ChangeScore(0.2f, true);
+        }
+        else
+        {
+            SkipTurn = true;
+            GameManager.Instance.ChangeScore(0.2f, false);
+        }
+        GameManager.Instance.ChangeTurn();
+        AnswerHandling();
+    }
 
-    private bool button;
+    public void RegainDevice()
+    {
+        GameManager.Instance.LostDevice = this;
+        EventManager.InvokeEvent(EventType.RegainDevice);
+    }
+
+    public void DeviceLost()
+    {
+        GameManager.Instance.LostDevice = this;
+        EventManager.InvokeEvent(EventType.DeviceLost);
+    }
+
 
     public void ChoosePlayer(int playerIndex)
     {
@@ -44,6 +71,7 @@ public class PlayerController : MonoBehaviour
 
     private void AnswerHandling()
     {
+        if (!currentTurn) { return; }
         int randomInt = Random.Range(0, options.Length);
         options[randomInt].text = QuestionHandler.Instance.GetAnswer();
         foreach (var item in options)
@@ -69,9 +97,9 @@ public class PlayerController : MonoBehaviour
 
     private void GameStart()
     {
-        Debug.Log("Player Start");
-        Invoke(nameof(AnswerHandling), 0.7f);
         gameStarted = true;
+        if (!currentTurn) { return; }
+        Invoke(nameof(AnswerHandling), 0.7f);
         uiObject.SetActive(true);
         playerMesh[WhichPlayerType].SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
@@ -92,31 +120,4 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    public void Answer(int answer)
-    {
-        if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
-        {
-            Correct = true;
-        }
-        else
-        {
-            Correct = false;
-        }
-        GameManager.Instance.ChangeTurn();
-        AnswerHandling();
-    }
-
-    public void RegainDevice()
-    {
-        GameManager.Instance.LostDevice = this;
-        EventManager.InvokeEvent(EventType.RegainDevice);
-    }
-
-    public void DeviceLost()
-    {
-        GameManager.Instance.LostDevice = this;
-        EventManager.InvokeEvent(EventType.DeviceLost);
-    }
-
-    public void ChangeTurn(InputAction.CallbackContext context) => button = context.ReadValueAsButton();
 }

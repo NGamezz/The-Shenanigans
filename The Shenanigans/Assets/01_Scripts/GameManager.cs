@@ -1,24 +1,87 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
-using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
+    public static PlayerInputManager PlayerInputManager { get; private set; }
+    public List<PlayerController> Players { get { return players; } }
     public static GameManager Instance { get; private set; }
+    public PlayerController LostDevice { get; set; }
+    public int IsTurn { get; private set; }
 
     [SerializeField] private List<PlayerController> players = new();
-    public List<PlayerController> Players { get { return players; } }
 
     [SerializeField] private List<Gamepad> gamepads = new();
 
-    public static PlayerInputManager PlayerInputManager { get; private set; }
+    [SerializeField] private Material spriteRendererMaterial;
 
-    public PlayerController LostDevice { get; set; }
+    [SerializeField] private SpriteRenderer spriteRenderer;
+
+    [SerializeField] private GameObject victory;
 
     private bool started = false;
 
-    public int IsTurn { get; private set; }
+    private float score = 0;
+
+    public void AddGamePad()
+    {
+        foreach (Gamepad gamepad in Gamepad.all)
+        {
+            InputSystem.EnableDevice(gamepad);
+        }
+    }
+
+    /// <summary>
+    /// Disable gamepad when it's not their turn, gonna have to figure out a function for that later.
+    /// </summary>
+    public void ChangeTurn()
+    {
+        QuestionHandler.Instance.LaunchQuestion();
+        if (players.Count < 2) { return; }
+
+        players[IsTurn - 1].CurrentTurn = false;
+        InputSystem.DisableDevice(players[IsTurn - 1].CurrentGamepad);
+
+        IsTurn++;
+        ResetIsTurn();
+
+        if (players[IsTurn - 1].SkipTurn)
+        {
+            IsTurn++;
+            ResetIsTurn();
+            CheckSkipTurns();
+        }
+
+        players[IsTurn - 1].CurrentTurn = true;
+        InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
+    }
+
+    public void ChangeScore(float change, bool add)
+    {
+        if (add)
+        {
+            score += change;
+        }
+        else
+        {
+            score -= change;
+        }
+        if (score >= 1)
+        {
+            score = 1;
+            victory.SetActive(true);
+        }
+        spriteRendererMaterial.SetFloat("_Dissolve", score);
+    }
+
+    private void ResetIsTurn()
+    {
+        if (IsTurn > players.Count)
+        {
+            IsTurn = 1;
+        }
+    }
 
     private void OnRegainDevice()
     {
@@ -48,17 +111,17 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void AddGamePad()
-    {
-        foreach (Gamepad gamepad in Gamepad.all)
-        {
-            InputSystem.EnableDevice(gamepad);
-        }
-    }
-
     private void Awake()
     {
-        Instance = this;
+        if (Instance != null)
+        {
+            Destroy(this);
+        }
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+
         PlayerInputManager = FindObjectOfType<PlayerInputManager>();
     }
 
@@ -68,36 +131,41 @@ public class GameManager : MonoBehaviour
         EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
         EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
         EventManager.AddListener(EventType.StartGame, () => OnStart());
+        EventManager.AddListener(EventType.StartTrivia, () => StartTrivia());
     }
 
-    /// <summary>
-    /// Disable gamepad when it's not their turn, gonna have to figure out a function for that later.
-    /// </summary>
-    public void ChangeTurn()
+    private void StartTrivia()
     {
-        QuestionHandler.Instance.LaunchQuestion();
-        if (players.Count < 2) { return; }
-
-        players[IsTurn - 1].CurrentTurn = false;
-        InputSystem.DisableDevice(players[IsTurn - 1].CurrentGamepad);
-
-        IsTurn++;
-        if (IsTurn > players.Count)
+        IsTurn = 1;
+        foreach (PlayerController player in players)
         {
-            IsTurn = 1;
-        }
-
-        if (!players[IsTurn - 1].Correct)
-        {
-            IsTurn++;
-            if (IsTurn > players.Count)
+            if (player == players[IsTurn - 1])
             {
-                IsTurn = 1;
+                InputSystem.EnableDevice(player.CurrentGamepad);
+                player.CurrentTurn = true;
+            }
+            else
+            {
+                InputSystem.DisableDevice(player.CurrentGamepad);
+                player.CurrentTurn = false;
             }
         }
+        Invoke(nameof(GetSpriteRenderer), 0.4f);
+    }
 
-        players[IsTurn - 1].CurrentTurn = true;
-        InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
+    //Whacky solution indeed
+    private void GetSpriteRenderer()
+    {
+        spriteRenderer = FindObjectOfType<Boss>().GetComponent<SpriteRenderer>();
+        spriteRendererMaterial = spriteRenderer.material;
+    }
+
+    private void CheckSkipTurns()
+    {
+        foreach (PlayerController player in players)
+        {
+            player.SkipTurn = false;
+        }
     }
 
     private void FixedUpdate()

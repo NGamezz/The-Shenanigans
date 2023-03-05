@@ -32,6 +32,7 @@ public static class EventManager
 
     public static void InvokeEvent(EventType type)
     {
+        if (!events.ContainsKey(type)) { return; }
         events[type]?.Invoke();
     }
 }

@@ -17,24 +17,28 @@ public class Question
 public class QuestionHandler : MonoBehaviour
 {
     public static QuestionHandler Instance { get; private set; }
-
-    [SerializeField] private List<Question> questions = new();
-    [SerializeField] private List<Question> usedQuestions = new();
-    [SerializeField] private TMP_Text questionText;
-
     public Question CurrentQuestion { get; private set; }
 
+    [SerializeField] private List<Question> usedQuestions = new();
+    [SerializeField] private List<Question> questions = new();
+    [SerializeField] private TMP_Text questionText;
 
-    //Still gotta fix double calling
+    private readonly Question nullQuestion = new();
+
     public Question GetQuestion()
     {
-        if (questions.Count == 0) { return null; }
+        if (questions.Count == 0) { return nullQuestion; }
 
         CurrentQuestion = questions[Random.Range(0, questions.Count)];
 
         usedQuestions.Add(CurrentQuestion);
         questions.Remove(CurrentQuestion);
         return CurrentQuestion;
+    }
+
+    public void SetQuestionObject(TMP_Text textObject)
+    {
+        questionText = textObject;
     }
 
     public void LaunchQuestion()
@@ -66,14 +70,16 @@ public class QuestionHandler : MonoBehaviour
         }
     }
 
-    public void SetQuestionObject(TMP_Text textObject)
+
+    private void Start()
     {
-        questionText = textObject;
+        nullQuestion.QuestionText = "Null";
+        nullQuestion.Answer = "Null";
     }
 
     public string GetFakeAnswers()
     {
-        if (CurrentQuestion.FakeAnswers.Count == 0) { return "nothing"; }
+        if (CurrentQuestion.FakeAnswers.Count == 0) { return "Null"; }
         string current = CurrentQuestion.FakeAnswers[Random.Range(0, CurrentQuestion.FakeAnswers.Count)];
         CurrentQuestion.UsedFakeAnswers.Add(current);
         CurrentQuestion.FakeAnswers.Remove(current);

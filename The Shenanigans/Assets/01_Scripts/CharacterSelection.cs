@@ -4,9 +4,9 @@ using UnityEngine.SceneManagement;
 public class CharacterSelection : MonoBehaviour
 {
     public int SelectedCharacter { get; private set; }
+    [SerializeField] private int GameSceneIndex;
     [SerializeField] GameObject[] characters;
     private int playerIndex = 0;
-    [SerializeField] private int GameSceneIndex;
 
     public void NextCharacter()
     {
@@ -20,8 +20,8 @@ public class CharacterSelection : MonoBehaviour
         GameManager.Instance.Players[playerIndex].ChoosePlayer(SelectedCharacter);
         if (playerIndex == GameManager.Instance.Players.Count - 1)
         {
-            EventManager.InvokeEvent(EventType.StartTrivia);
             SceneManager.LoadScene(GameSceneIndex);
+            EventManager.InvokeEvent(EventType.StartTrivia);
             return;
         }
         playerIndex++;
