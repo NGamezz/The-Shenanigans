@@ -33,6 +33,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private TMP_Text[] options;
     [SerializeField] private bool currentTurn;
     [SerializeField] private float moveSpeed;
+    private float scoreGain;
     private bool gameStarted = false;
     private PlayerInput playerInput;
     public void Answer(int answer)
@@ -40,12 +41,12 @@ public class PlayerController : MonoBehaviour
         if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
         {
             SkipTurn = false;
-            GameManager.Instance.ChangeScore(0.2f, true);
+            GameManager.Instance.ChangeScore(scoreGain, true);
         }
         else
         {
             SkipTurn = true;
-            GameManager.Instance.ChangeScore(0.2f, false);
+            GameManager.Instance.ChangeScore(scoreGain, false);
         }
         GameManager.Instance.ChangeTurn();
         AnswerHandling();
@@ -108,6 +109,7 @@ public class PlayerController : MonoBehaviour
 
     private void Start()
     {
+        scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
