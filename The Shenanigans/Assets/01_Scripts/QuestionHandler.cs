@@ -21,6 +21,7 @@ public class QuestionHandler : MonoBehaviour
 
     [SerializeField] private List<Question> usedQuestions = new();
     [SerializeField] private List<Question> questions = new();
+    public List<Question> Questions { get { return questions; } }
     [SerializeField] private TMP_Text questionText;
 
     private readonly Question nullQuestion = new();

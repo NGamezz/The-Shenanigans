@@ -1570,9 +1570,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   players: []
-  victory: {fileID: 183799955}
-  spriteRenderer: {fileID: 0}
   spriteRendererMaterial: {fileID: 0}
+  spriteRenderer: {fileID: 0}
+  victory: {fileID: 183799955}
 --- !u!114 &1101046265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1587,23 +1587,41 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usedQuestions: []
   questions:
-  - QuestionText: Why Hello There
-    Answer: Hello
+  - QuestionText: Hoeveel Studie richtingen heeft HKU G&I?
+    Answer: 3
     FakeAnswers:
-    - 512
-    - 12512
+    - 4
+    - 2
     UsedFakeAnswers: []
-  - QuestionText: Solid question isn't it?
-    Answer: Certainly
+  - QuestionText: Hoeveel Studiepunten moet je minimaal halen?
+    Answer: 52
     FakeAnswers:
-    - mhm
-    - hmh
+    - 60
+    - 50
     UsedFakeAnswers: []
-  - QuestionText: Howdy
-    Answer: Howdy
+  - QuestionText: Wat is de G&I space?
+    Answer: Een werk ruimte voor G&I studenten
     FakeAnswers:
-    - 124124
-    - 521
+    - Een cafetaria
+    - Een game room
+    UsedFakeAnswers: []
+  - QuestionText: Hoeveel Studiepunten zijn er te behalen in jaar 1?
+    Answer: 60
+    FakeAnswers:
+    - 52
+    - 55
+    UsedFakeAnswers: []
+  - QuestionText: Hoe heet de Ezel in de ingang?
+    Answer: Fred
+    FakeAnswers:
+    - Barb
+    - Donkeh
+    UsedFakeAnswers: []
+  - QuestionText: Wat voor een laptop is nodig?
+    Answer: Afhankelijk van eigen eisen, zolang het werkt.
+    FakeAnswers:
+    - Top of the line machine.
+    - Anything.
     UsedFakeAnswers: []
   questionText: {fileID: 0}
 --- !u!114 &1101046267
@@ -1630,11 +1648,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bbefdc369768fc3418b72d9e39323727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  GameSceneIndex: 0
   characters:
   - {fileID: 1590712406}
   - {fileID: 849906256}
   - {fileID: 251688466}
-  GameSceneIndex: 0
 --- !u!1 &1453762872
 GameObject:
   m_ObjectHideFlags: 0
