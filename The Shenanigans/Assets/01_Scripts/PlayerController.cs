@@ -3,6 +3,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.XInput;
 using TMPro;
+using System.Collections.Generic;
+using System.Collections;
 
 public class PlayerController : MonoBehaviour
 {
@@ -17,6 +19,7 @@ public class PlayerController : MonoBehaviour
             currentTurn = value;
             if (!gameStarted) { return; }
             uiObject.SetActive(value);
+            attackUIObject.SetActive(false);
             playerMesh[WhichPlayerType].SetActive(value);
             Invoke(nameof(AnswerHandling), 0.7f);
         }
@@ -30,24 +33,94 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private GameObject[] playerMesh;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
+    [SerializeField] private GameObject attackUIObject;
     [SerializeField] private TMP_Text[] options;
+    [SerializeField] private TMP_Text[] attackOptions;
+
+    private float scoreGain;
+
     [SerializeField] private bool currentTurn;
     [SerializeField] private float moveSpeed;
-    private float scoreGain;
+
     private bool gameStarted = false;
     private PlayerInput playerInput;
+
     public void Answer(int answer)
     {
         if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
         {
             SkipTurn = false;
-            GameManager.Instance.ChangeScore(scoreGain, true);
+            StartAttack();
         }
         else
         {
             SkipTurn = true;
-            GameManager.Instance.ChangeScore(scoreGain, false);
+            EventManager.InvokeEvent(EventType.Explanation);
+            GameManager.Instance.ChangeScore(0.2f, false);
+            GameManager.Instance.ChangeTurn();
         }
+        AnswerHandling();
+    }
+
+    private void StartAttack()
+    {
+        uiObject.SetActive(false);
+        List<string> attacks = new();
+
+        switch (WhichPlayerType)
+        {
+            case 0:
+                {
+                    attacks = QuestionHandler.Instance.DevAttacks;
+                    break;
+                }
+            case 1:
+                {
+                    attacks = QuestionHandler.Instance.ArtistAttacks;
+                    break;
+                }
+            case 2:
+                {
+                    attacks = QuestionHandler.Instance.DesignAttacks;
+                    break;
+                }
+        }
+
+        for (int i = 0; i < attacks.Count; i++)
+        {
+            attackOptions[i].text = attacks[i];
+        }
+        attackUIObject.SetActive(true);
+    }
+
+    public void Attack(int index)
+    {
+        switch (index)
+        {
+            case 0:
+                {
+                    GameManager.Instance.ChangeScore(scoreGain, true);
+                    break;
+                }
+            case 1:
+                {
+                    GameManager.Instance.ChangeScore(scoreGain, true);
+                    break;
+                }
+            case 2:
+                {
+                    GameManager.Instance.ChangeScore(scoreGain, true);
+                    break;
+                }
+            case 3:
+                {
+                    GameManager.Instance.ChangeScore(scoreGain, true);
+                    break;
+                }
+        }
+
+        attackUIObject.SetActive(false);
+        uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
         AnswerHandling();
     }
@@ -110,6 +183,7 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
+        Debug.Log(scoreGain);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
