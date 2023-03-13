@@ -1587,47 +1587,48 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   usedQuestions: []
   questions:
-  - QuestionText: Why Hello There
-    Answer: Hello
-    Explanation: Much explanation, much wow.
   - QuestionText: Hoeveel Studie richtingen heeft HKU G&I?
     Answer: 3
+    Explanation: Er zijn 3 studierichtingen in Games & Interactie. Development, Design,
+      Art.
     FakeAnswers:
     - 4
     - 2
     UsedFakeAnswers: []
-  - QuestionText: Solid question isn't it?
-    Answer: Certainly
-    Explanation: Much Explanation, makes sense.
   - QuestionText: Hoeveel Studiepunten moet je minimaal halen?
     Answer: 52
+    Explanation: 52 Studiepunten zijn benodigd om het jaar te halen.
     FakeAnswers:
     - 60
     - 50
     UsedFakeAnswers: []
-  - QuestionText: Howdy
-    Answer: Howdy
-    Explanation: Much learn, much wow.
   - QuestionText: Wat is de G&I space?
     Answer: Een werk ruimte voor G&I studenten
+    Explanation: De G&I space is een ruimte waarin je onder andere aan projecten
+      kan werken.
     FakeAnswers:
     - Een cafetaria
     - Een game room
     UsedFakeAnswers: []
   - QuestionText: Hoeveel Studiepunten zijn er te behalen in jaar 1?
     Answer: 60
+    Explanation: Er zijn maixmaal 60 studiepunten te behalen in jaar 1.
     FakeAnswers:
     - 52
     - 55
     UsedFakeAnswers: []
   - QuestionText: Hoe heet de Ezel in de ingang?
     Answer: Fred
+    Explanation: De echte naam van de Ezel is aan ons onbekend, maar het is benoemd
+      tot Fred door een van de groepsgenoten.
     FakeAnswers:
     - Barb
     - Donkeh
     UsedFakeAnswers: []
   - QuestionText: Wat voor een laptop is nodig?
     Answer: Afhankelijk van eigen eisen, zolang het werkt.
+    Explanation: Het hangt voornamelijk af van wat voor games jij wilt maken, maar
+      voor de studie zelf is het niet super belangrijk dat het high-end is.
     FakeAnswers:
     - Top of the line machine.
     - Anything.
