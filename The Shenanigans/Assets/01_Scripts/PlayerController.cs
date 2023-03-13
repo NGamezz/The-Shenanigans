@@ -41,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private bool currentTurn;
     [SerializeField] private float moveSpeed;
-    private float scoreGain;
+
     private bool gameStarted = false;
     private PlayerInput playerInput;
 
