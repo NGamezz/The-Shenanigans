@@ -9,6 +9,7 @@ public class Question
 {
     public string QuestionText;
     public string Answer;
+    public string Explanation;
 
     public List<string> FakeAnswers = new();
     public List<string> UsedFakeAnswers = new();
@@ -20,10 +21,36 @@ public class QuestionHandler : MonoBehaviour
     public Question CurrentQuestion { get; private set; }
 
     [SerializeField] private List<Question> usedQuestions = new();
+
     [SerializeField] private List<Question> questions = new();
+    public List<Question> Questions { get { return questions; } }
+
+    [SerializeField] private TMP_Text explanationText;
+
+    [SerializeField] private int explanationAmount = 5;
     [SerializeField] private TMP_Text questionText;
 
+    [SerializeField] private List<string> devAttacks = new();
+    public List<string> DevAttacks { get { return devAttacks; } }
+    [SerializeField] private List<string> artistAttacks = new();
+    public List<string> ArtistAttacks { get { return artistAttacks; } }
+    [SerializeField] private List<string> designAttacks = new();
+    public List<string> DesignAttacks { get { return designAttacks; } }
+
     private readonly Question nullQuestion = new();
+
+    private void LaunchExplanation()
+    {
+        StartCoroutine(Explanation(explanationAmount));
+    }
+
+    private IEnumerator Explanation(int delay)
+    {
+        explanationText.gameObject.SetActive(true);
+        explanationText.text = CurrentQuestion.Explanation;
+        yield return new WaitForSeconds(delay);
+        explanationText.gameObject.SetActive(false);
+    }
 
     public Question GetQuestion()
     {
@@ -55,7 +82,8 @@ public class QuestionHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.StartTrivia, () => Starting());
+        EventManager.AddListener(EventType.StartTrivia, Starting);
+        EventManager.AddListener(EventType.Explanation, LaunchExplanation);
     }
 
     private void Awake()
@@ -69,7 +97,6 @@ public class QuestionHandler : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
 
     private void Start()
     {

@@ -8,7 +8,8 @@ public enum EventType
     DeviceLost,
     RegainDevice,
     StartGame,
-    StartTrivia
+    StartTrivia,
+    Explanation
 }
 
 public static class EventManager
