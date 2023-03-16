@@ -50,10 +50,16 @@ public class PlayerController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputControllerWindows))
+        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
         {
-            CurrentGamepad = (XInputControllerWindows)device;
+            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
         }
+        else if (device.GetType() == typeof(XInputController))
+        {
+            CurrentGamepad = (XInputController)device;
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+        }
+<<<<<<< Updated upstream
 
         Cursor.lockState = CursorLockMode.Locked;
         SetupStateMachine();
@@ -106,3 +112,10 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context) => movementInput = context.ReadValue<Vector2>();
 }
+=======
+    }
+
+    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
+}
+
+>>>>>>> Stashed changes
