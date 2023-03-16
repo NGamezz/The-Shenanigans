@@ -5,6 +5,8 @@ using UnityEngine.InputSystem.XInput;
 using TMPro;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.Video;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -24,6 +26,10 @@ public class PlayerController : MonoBehaviour
             Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
+
+    [SerializeField] private VideoClip[] attackClips;
+    [SerializeField] private VideoPlayer videoPlayer;
+    [SerializeField] private RawImage image;
 
     public Gamepad CurrentGamepad { get; private set; }
     public int WhichPlayerType { get; private set; }
@@ -93,7 +99,12 @@ public class PlayerController : MonoBehaviour
         attackUIObject.SetActive(true);
     }
 
-    public void Attack(int index)
+    public void AttackWrapper(int index)
+    {
+        StartCoroutine(Attack(index));
+    }
+
+    public IEnumerator Attack(int index)
     {
         switch (index)
         {
@@ -119,6 +130,13 @@ public class PlayerController : MonoBehaviour
                 }
         }
 
+        image.enabled = true;
+        videoPlayer.clip = attackClips[WhichPlayerType];
+        videoPlayer.Play();
+
+        yield return new WaitForSeconds(1.5f);
+
+        image.enabled = false;
         attackUIObject.SetActive(false);
         uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
@@ -169,6 +187,15 @@ public class PlayerController : MonoBehaviour
         EventManager.AddListener(EventType.StartTrivia, () => GameStart());
     }
 
+    private bool restart = false;
+    private void FixedUpdate()
+    {
+        if (restart)
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(1);
+        }
+    }
+
     private void GameStart()
     {
         gameStarted = true;
@@ -193,7 +220,8 @@ public class PlayerController : MonoBehaviour
         {
             CurrentGamepad = (XInputControllerWindows)device;
         }
-        Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
     }
 
+    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
 }
