@@ -130,12 +130,14 @@ public class PlayerController : MonoBehaviour
                 }
         }
 
+        InputSystem.DisableDevice(CurrentGamepad);
         image.enabled = true;
         videoPlayer.clip = attackClips[WhichPlayerType];
         videoPlayer.Play();
 
         yield return new WaitForSeconds(1.5f);
 
+        InputSystem.EnableDevice(CurrentGamepad);
         image.enabled = false;
         attackUIObject.SetActive(false);
         uiObject.SetActive(true);

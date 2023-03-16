@@ -182,7 +182,6 @@ public class GameManager : MonoBehaviour
         {
             InputSystem.EnableDevice(gamepad);
         }
-
         players[IsTurn - 1].CurrentTurn = true;
         started = true;
     }
