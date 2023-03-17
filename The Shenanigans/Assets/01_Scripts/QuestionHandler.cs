@@ -29,6 +29,7 @@ public class QuestionHandler : MonoBehaviour
 
     [SerializeField] private int explanationAmount = 5;
     [SerializeField] private TMP_Text questionText;
+    public TMP_Text QuestionText { get { return questionText; } }
 
     [SerializeField] private List<string> devAttacks = new();
     public List<string> DevAttacks { get { return devAttacks; } }

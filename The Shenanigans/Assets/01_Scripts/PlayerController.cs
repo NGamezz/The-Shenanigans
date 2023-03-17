@@ -70,6 +70,7 @@ public class PlayerController : MonoBehaviour
 
     private void StartAttack()
     {
+        QuestionHandler.Instance.QuestionText.gameObject.SetActive(false);
         uiObject.SetActive(false);
         List<string> attacks = new();
 
@@ -134,12 +135,14 @@ public class PlayerController : MonoBehaviour
         image.enabled = true;
         videoPlayer.clip = attackClips[WhichPlayerType];
         videoPlayer.Play();
+        attackUIObject.SetActive(false);
+        uiObject.SetActive(false);
 
         yield return new WaitForSeconds(1.5f);
 
+        QuestionHandler.Instance.QuestionText.gameObject.SetActive(true);
         InputSystem.EnableDevice(CurrentGamepad);
         image.enabled = false;
-        attackUIObject.SetActive(false);
         uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
         AnswerHandling();
