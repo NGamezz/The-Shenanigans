@@ -221,9 +221,9 @@ public class PlayerController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputControllerWindows))
+        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
         {
-            CurrentGamepad = (XInputControllerWindows)device;
+            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
         }
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
     }
