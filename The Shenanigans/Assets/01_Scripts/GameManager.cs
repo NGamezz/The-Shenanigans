@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -13,11 +14,15 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private List<PlayerController> players = new();
 
-    [SerializeField] private List<Gamepad> gamepads = new();
-
     [SerializeField] private Material spriteRendererMaterial;
 
+    [SerializeField] private List<Gamepad> gamepads = new();
+
     [SerializeField] private SpriteRenderer spriteRenderer;
+
+    [SerializeField] private GameObject cartridgeObject;
+
+    [SerializeField] private TMP_Text scoreText;
 
     [SerializeField] private GameObject victory;
 
@@ -58,6 +63,16 @@ public class GameManager : MonoBehaviour
         InputSystem.EnableDevice(players[IsTurn - 1].CurrentGamepad);
     }
 
+    private void RestartHandling()
+    {
+        score = 0;
+        started = false;
+        victory.SetActive(false);
+        cartridgeObject.SetActive(false);
+        scoreText.gameObject.SetActive(false);
+        IsTurn = 0;
+    }
+
     public void ChangeScore(float change, bool add)
     {
         if (add)
@@ -73,6 +88,11 @@ public class GameManager : MonoBehaviour
             score = 1;
             victory.SetActive(true);
         }
+        if (score <= -0.5f)
+        {
+            score = -0.5f;
+        }
+        scoreText.text = score.ToString();
         spriteRendererMaterial.SetFloat("_Dissolve", score);
     }
 
@@ -99,6 +119,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        scoreText.text = 0.ToString();
         IsTurn = 1;
         AddGamePad();
     }
@@ -137,6 +158,8 @@ public class GameManager : MonoBehaviour
 
     private void StartTrivia()
     {
+        cartridgeObject.SetActive(true);
+        scoreText.gameObject.SetActive(true);
         IsTurn = 1;
         foreach (PlayerController player in players)
         {
@@ -154,7 +177,6 @@ public class GameManager : MonoBehaviour
         Invoke(nameof(GetSpriteRenderer), 0.4f);
     }
 
-    //Whacky solution indeed
     private void GetSpriteRenderer()
     {
         spriteRenderer = FindObjectOfType<Boss>().GetComponent<SpriteRenderer>();

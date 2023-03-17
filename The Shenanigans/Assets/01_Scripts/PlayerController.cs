@@ -53,7 +53,8 @@ public class PlayerController : MonoBehaviour
 
     public void Answer(int answer)
     {
-        if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
+        Question currentQuestion = QuestionHandler.Instance.CurrentQuestion;
+        if (options[answer].text == currentQuestion.Answer)
         {
             SkipTurn = false;
             StartAttack();
@@ -61,8 +62,9 @@ public class PlayerController : MonoBehaviour
         else
         {
             SkipTurn = true;
+            QuestionHandler.Instance.WrongAnswer(currentQuestion);
             EventManager.InvokeEvent(EventType.Explanation);
-            GameManager.Instance.ChangeScore(0.2f, false);
+            GameManager.Instance.ChangeScore(0.1f, false);
             GameManager.Instance.ChangeTurn();
         }
         AnswerHandling();
@@ -192,13 +194,12 @@ public class PlayerController : MonoBehaviour
         EventManager.AddListener(EventType.StartTrivia, () => GameStart());
     }
 
-    private bool restart = false;
-    private void FixedUpdate()
+    private void RestartHandling()
     {
-        if (restart)
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadScene(1);
-        }
+        uiObject.SetActive(false);
+        attackUIObject.SetActive(false);
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
     private void GameStart()
@@ -228,5 +229,5 @@ public class PlayerController : MonoBehaviour
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
     }
 
-    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
+    //public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
 }
