@@ -59,7 +59,6 @@ public class PlayerController : MonoBehaviour
             CurrentGamepad = (XInputController)device;
             UnityEngine.Cursor.lockState = CursorLockMode.Locked;
         }
-<<<<<<< Updated upstream
 
         Cursor.lockState = CursorLockMode.Locked;
         SetupStateMachine();
@@ -112,10 +111,12 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputAction.CallbackContext context) => movementInput = context.ReadValue<Vector2>();
 }
-=======
-    }
 
-    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
-}
+//    {
 
->>>>>>> Stashed changes
+//    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
+//}
+
+
+
+
