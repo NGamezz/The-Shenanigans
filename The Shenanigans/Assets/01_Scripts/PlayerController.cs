@@ -5,6 +5,8 @@ using UnityEngine.InputSystem.XInput;
 using TMPro;
 using System.Collections.Generic;
 using System.Collections;
+using UnityEngine.Video;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -24,6 +26,10 @@ public class PlayerController : MonoBehaviour
             Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
+
+    [SerializeField] private VideoClip[] attackClips;
+    [SerializeField] private VideoPlayer videoPlayer;
+    [SerializeField] private RawImage image;
 
     public Gamepad CurrentGamepad { get; private set; }
     public int WhichPlayerType { get; private set; }
@@ -47,7 +53,8 @@ public class PlayerController : MonoBehaviour
 
     public void Answer(int answer)
     {
-        if (options[answer].text == QuestionHandler.Instance.CurrentQuestion.Answer)
+        Question currentQuestion = QuestionHandler.Instance.CurrentQuestion;
+        if (options[answer].text == currentQuestion.Answer)
         {
             SkipTurn = false;
             StartAttack();
@@ -55,8 +62,9 @@ public class PlayerController : MonoBehaviour
         else
         {
             SkipTurn = true;
+            QuestionHandler.Instance.WrongAnswer(currentQuestion);
             EventManager.InvokeEvent(EventType.Explanation);
-            GameManager.Instance.ChangeScore(0.2f, false);
+            GameManager.Instance.ChangeScore(0.1f, false);
             GameManager.Instance.ChangeTurn();
         }
         AnswerHandling();
@@ -64,6 +72,7 @@ public class PlayerController : MonoBehaviour
 
     private void StartAttack()
     {
+        QuestionHandler.Instance.QuestionText.gameObject.SetActive(false);
         uiObject.SetActive(false);
         List<string> attacks = new();
 
@@ -93,7 +102,12 @@ public class PlayerController : MonoBehaviour
         attackUIObject.SetActive(true);
     }
 
-    public void Attack(int index)
+    public void AttackWrapper(int index)
+    {
+        StartCoroutine(Attack(index));
+    }
+
+    public IEnumerator Attack(int index)
     {
         switch (index)
         {
@@ -119,7 +133,18 @@ public class PlayerController : MonoBehaviour
                 }
         }
 
+        InputSystem.DisableDevice(CurrentGamepad);
+        image.enabled = true;
+        videoPlayer.clip = attackClips[WhichPlayerType];
+        videoPlayer.Play();
         attackUIObject.SetActive(false);
+        uiObject.SetActive(false);
+
+        yield return new WaitForSeconds(1.5f);
+
+        QuestionHandler.Instance.QuestionText.gameObject.SetActive(true);
+        InputSystem.EnableDevice(CurrentGamepad);
+        image.enabled = false;
         uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
         AnswerHandling();
@@ -169,6 +194,14 @@ public class PlayerController : MonoBehaviour
         EventManager.AddListener(EventType.StartTrivia, () => GameStart());
     }
 
+    private void RestartHandling()
+    {
+        uiObject.SetActive(false);
+        attackUIObject.SetActive(false);
+        EventSystem.current.SetSelectedGameObject(null);
+        EventSystem.current.SetSelectedGameObject(firstButton);
+    }
+
     private void GameStart()
     {
         gameStarted = true;
@@ -189,11 +222,12 @@ public class PlayerController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputControllerWindows))
+        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
         {
-            CurrentGamepad = (XInputControllerWindows)device;
+            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
         }
-        Cursor.lockState = CursorLockMode.Locked;
+        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
     }
 
+    //public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
 }

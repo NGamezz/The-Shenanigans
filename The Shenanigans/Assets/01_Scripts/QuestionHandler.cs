@@ -22,6 +22,8 @@ public class QuestionHandler : MonoBehaviour
 
     [SerializeField] private List<Question> usedQuestions = new();
 
+    [SerializeField] private List<Question> wrongQuestions = new();
+
     [SerializeField] private List<Question> questions = new();
     public List<Question> Questions { get { return questions; } }
 
@@ -29,6 +31,7 @@ public class QuestionHandler : MonoBehaviour
 
     [SerializeField] private int explanationAmount = 5;
     [SerializeField] private TMP_Text questionText;
+    public TMP_Text QuestionText { get { return questionText; } }
 
     [SerializeField] private List<string> devAttacks = new();
     public List<string> DevAttacks { get { return devAttacks; } }
@@ -52,14 +55,36 @@ public class QuestionHandler : MonoBehaviour
         explanationText.gameObject.SetActive(false);
     }
 
+    public void WrongAnswer(Question question)
+    {
+        wrongQuestions.Add(question);
+    }
+
     public Question GetQuestion()
     {
-        if (questions.Count == 0) { return nullQuestion; }
-
-        CurrentQuestion = questions[Random.Range(0, questions.Count)];
+        if (questions.Count == 0)
+        {
+            if (wrongQuestions.Count == 0) { return nullQuestion; }
+            questions.AddRange(wrongQuestions);
+            CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
+            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
+            CurrentQuestion.UsedFakeAnswers.Clear();
+            wrongQuestions.Clear();
+        }
+        else
+        {
+            CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
+        }
 
         usedQuestions.Add(CurrentQuestion);
         questions.Remove(CurrentQuestion);
+
+        if (CurrentQuestion.FakeAnswers.Count == 0)
+        {
+            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
+            CurrentQuestion.UsedFakeAnswers.Clear();
+        }
+
         return CurrentQuestion;
     }
 
