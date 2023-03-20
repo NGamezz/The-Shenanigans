@@ -64,7 +64,10 @@ public class QuestionHandler : MonoBehaviour
     {
         if (questions.Count == 0)
         {
-            if (wrongQuestions.Count == 0) { return nullQuestion; }
+            if (wrongQuestions.Count == 0)
+            {
+                questions.AddRange(usedQuestions);
+            }
             questions.AddRange(wrongQuestions);
             CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
             CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
@@ -76,7 +79,10 @@ public class QuestionHandler : MonoBehaviour
             CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
         }
 
-        usedQuestions.Add(CurrentQuestion);
+        if (!usedQuestions.Contains(CurrentQuestion))
+        {
+            usedQuestions.Add(CurrentQuestion);
+        }
         questions.Remove(CurrentQuestion);
 
         if (CurrentQuestion.FakeAnswers.Count == 0)
