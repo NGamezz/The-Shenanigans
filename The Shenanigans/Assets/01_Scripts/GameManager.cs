@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine.InputSystem.XInput;
 
 public class GameManager : MonoBehaviour
 {
@@ -149,7 +150,7 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.JoinPlayer, () => PlayerJoined());
+        EventManager.AddListener(EventType.JoinPlayer, PlayerJoined);
         EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
         EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
         EventManager.AddListener(EventType.StartGame, () => OnStart());
@@ -200,6 +201,18 @@ public class GameManager : MonoBehaviour
 
     private void OnStart()
     {
+        foreach (PlayerController player in players)
+        {
+            if (player == players[0])
+            {
+                player.CurrentTurn = true;
+            }
+            else
+            {
+                player.CurrentTurn &= false;
+            }
+        }
+
         foreach (Gamepad gamepad in gamepads)
         {
             InputSystem.EnableDevice(gamepad);

@@ -217,14 +217,16 @@ public class PlayerController : MonoBehaviour
     {
         scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
         Debug.Log(scoreGain);
+
+        EventManager.InvokeEvent(EventType.JoinPlayer);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
+        if (device.GetType() == typeof(XInputControllerWindows))
         {
-            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
+            CurrentGamepad = (XInputControllerWindows)device;
         }
         UnityEngine.Cursor.lockState = CursorLockMode.Locked;
     }
