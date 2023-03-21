@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Video;
+using Unity.VisualScripting;
 
 [System.Serializable]
 public class Question
@@ -10,6 +11,13 @@ public class Question
     public string QuestionText;
     public string Answer;
     public string Explanation;
+
+    public void Reset()
+    {
+        FakeAnswers.Clear();
+        FakeAnswers.AddRange(UsedFakeAnswers);
+        UsedFakeAnswers.Clear();
+    }
 
     public List<string> FakeAnswers = new();
     public List<string> UsedFakeAnswers = new();
@@ -42,6 +50,8 @@ public class QuestionHandler : MonoBehaviour
 
     private readonly Question nullQuestion = new();
 
+    private bool victory = false;
+
     private void LaunchExplanation()
     {
         StartCoroutine(Explanation(explanationAmount));
@@ -66,12 +76,15 @@ public class QuestionHandler : MonoBehaviour
         {
             if (wrongQuestions.Count == 0)
             {
-                questions.AddRange(usedQuestions);
+                HashSet<Question> noDupeQuestions = new HashSet<Question>();
+                noDupeQuestions.AddRange(usedQuestions);
+                questions.AddRange(noDupeQuestions);
+                usedQuestions.Clear();
             }
+
             questions.AddRange(wrongQuestions);
             CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
-            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
-            CurrentQuestion.UsedFakeAnswers.Clear();
+            CurrentQuestion.Reset();
             wrongQuestions.Clear();
         }
         else
@@ -83,6 +96,7 @@ public class QuestionHandler : MonoBehaviour
         {
             usedQuestions.Add(CurrentQuestion);
         }
+
         questions.Remove(CurrentQuestion);
 
         if (CurrentQuestion.FakeAnswers.Count == 0)
@@ -94,6 +108,11 @@ public class QuestionHandler : MonoBehaviour
         return CurrentQuestion;
     }
 
+    private void Victory()
+    {
+        victory = true;
+    }
+
     public void SetQuestionObject(TMP_Text textObject)
     {
         questionText = textObject;
@@ -101,7 +120,11 @@ public class QuestionHandler : MonoBehaviour
 
     public void LaunchQuestion()
     {
-        if (questionText == null) { return; }
+        if (victory)
+        {
+            questionText.text = "";
+        }
+        if (questionText == null || victory) { return; }
         questionText.text = GetQuestion().QuestionText;
     }
 
@@ -113,19 +136,36 @@ public class QuestionHandler : MonoBehaviour
 
     private void OnEnable()
     {
+        EventManager.AddListener(EventType.Victory, Victory);
         EventManager.AddListener(EventType.StartTrivia, Starting);
+        EventManager.AddListener(EventType.Restart, Restart);
         EventManager.AddListener(EventType.Explanation, LaunchExplanation);
+    }
+
+    private void Restart()
+    {
+        HashSet<Question> noDupeQuestions = new HashSet<Question>();
+        noDupeQuestions.AddRange(usedQuestions);
+        questions.Clear();
+        usedQuestions.Clear();
+        wrongQuestions.Clear();
+        questions.AddRange(noDupeQuestions);
+        foreach (Question question in questions)
+        {
+            question.Reset();
+        }
     }
 
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(Instance);
+            Instance = null;
+        }
         if (Instance == null)
         {
             Instance = this;
-        }
-        if (Instance != this)
-        {
-            Destroy(gameObject);
         }
     }
 

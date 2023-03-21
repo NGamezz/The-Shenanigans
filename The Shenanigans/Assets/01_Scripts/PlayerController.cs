@@ -39,13 +39,15 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private Button[] triviaButtons = new Button[3];
 
-    [SerializeField] private GameObject[] playerMesh;
+    [SerializeField] private GameObject[] playerMesh = new GameObject[3];
     [SerializeField] private Image attackImage;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
     [SerializeField] private GameObject attackUIObject;
     [SerializeField] private TMP_Text[] options;
     [SerializeField] private TMP_Text[] attackOptions;
+
+    private bool restart;
 
     private float scoreGain;
 
@@ -172,6 +174,18 @@ public class PlayerController : MonoBehaviour
         WhichPlayerType = playerIndex;
     }
 
+    private void FixedUpdate()
+    {
+        if (restart)
+        {
+            //EventManager.InvokeEvent(EventType.Restart);
+            //Restart();
+            playerInput.user.UnpairDevices();
+            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            Destroy(gameObject);
+        }
+    }
+
     private void AnswerHandling()
     {
         if (!currentTurn) { return; }
@@ -195,11 +209,24 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        Debug.Log("TestEnable");
         EventManager.AddListener(EventType.StartTrivia, () => GameStart());
+    }
+
+    private void OnDisable()
+    {
+        Debug.Log("TestDisable");
     }
 
     private void RestartHandling()
     {
+        EventManager.RemoveListener(EventType.StartTrivia, () => GameStart());
+        foreach (GameObject objects in playerMesh)
+        {
+            objects.SetActive(false);
+        }
+
+        playerInput.user.UnpairDevices();
         uiObject.SetActive(false);
         attackUIObject.SetActive(false);
         EventSystem.current.SetSelectedGameObject(null);
@@ -208,6 +235,7 @@ public class PlayerController : MonoBehaviour
 
     private void GameStart()
     {
+        Debug.Log(WhichPlayerType);
         attackImage.color = GameManager.Instance.Colours[WhichPlayerType];
 
         foreach (Button button in triviaButtons)
@@ -218,8 +246,10 @@ public class PlayerController : MonoBehaviour
         }
 
         gameStarted = true;
+
         playerMesh[WhichPlayerType].transform.position = Position;
         playerMesh[WhichPlayerType].SetActive(true);
+
         if (!currentTurn) { return; }
         Invoke(nameof(AnswerHandling), 0.7f);
         uiObject.SetActive(true);
@@ -228,8 +258,19 @@ public class PlayerController : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
+    private void Restart()
+    {
+        Position = Vector3.zero;
+        WhichPlayerType = 0;
+        currentTurn = false;
+        RestartHandling();
+        Destroy(this.gameObject);
+        Destroy(this);
+    }
+
     private void Start()
     {
+        WhichPlayerType = 0;
         scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
         Debug.Log(scoreGain);
 
@@ -250,5 +291,5 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
+    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
 }

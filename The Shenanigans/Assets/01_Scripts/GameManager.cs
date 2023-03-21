@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Material spriteRendererMaterial;
 
+
     [SerializeField] private List<Gamepad> gamepads = new();
 
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -27,8 +28,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Slider healthSlider;
 
     public Color[] Colours = new Color[3];
-
-    [SerializeField] private TMP_Text scoreText;
 
     [SerializeField] private GameObject victory;
 
@@ -80,7 +79,6 @@ public class GameManager : MonoBehaviour
         started = false;
         victory.SetActive(false);
         cartridgeObject.SetActive(false);
-        scoreText.gameObject.SetActive(false);
         IsTurn = 0;
     }
 
@@ -92,15 +90,13 @@ public class GameManager : MonoBehaviour
         if (score >= 1)
         {
             score = 1;
+            EventManager.InvokeEvent(EventType.Victory);
             victory.SetActive(true);
         }
         if (score <= -0.5f)
         {
             score = -0.5f;
         }
-
-        int result = (int)(score * 100);
-        scoreText.text = result.ToString();
         spriteRendererMaterial.SetFloat("_Dissolve", score);
     }
 
@@ -130,7 +126,6 @@ public class GameManager : MonoBehaviour
         healthSlider.value = healthSlider.maxValue;
         width = Screen.currentResolution.width;
         height = Screen.currentResolution.height;
-        scoreText.text = 0.ToString();
         IsTurn = 1;
         AddGamePad();
     }
@@ -146,9 +141,11 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null)
+        if (Instance != null && Instance != this)
         {
-            Destroy(this);
+            Destroy(Instance);
+            Destroy(Instance.gameObject);
+            Instance = null;
         }
         if (Instance == null)
         {
@@ -160,6 +157,7 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
+        EventManager.AddListener(EventType.Restart, OnRestart);
         EventManager.AddListener(EventType.JoinPlayer, PlayerJoined);
         EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
         EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
@@ -173,12 +171,11 @@ public class GameManager : MonoBehaviour
         foreach (PlayerController player in players)
         {
             player.Position.x = (-width / 2 / 100) + (playerIndex + (width / 12 / 100)) * offSet.x;
-            player.Position.y = (-height / 4 / 100);
+            player.Position.y = (-height / 5 / 100);
             playerIndex++;
         }
 
         cartridgeObject.SetActive(true);
-        scoreText.gameObject.SetActive(true);
         IsTurn = 1;
         foreach (PlayerController player in players)
         {
@@ -215,6 +212,18 @@ public class GameManager : MonoBehaviour
         if (players.Count == 0) return;
         if (started) { return; }
         EventManager.InvokeEvent(EventType.StartGame);
+    }
+
+    private void OnRestart()
+    {
+        PlayerInputManager inputManager = FindObjectOfType<PlayerInputManager>();
+        inputManager.EnableJoining();
+        healthSlider.value = healthSlider.maxValue;
+        score = 0;
+        gamepads.Clear();
+        cartridgeObject.SetActive(false);
+        players.Clear();
+        spriteRendererMaterial.SetFloat("_Dissolve", 0f);
     }
 
     private void OnStart()
