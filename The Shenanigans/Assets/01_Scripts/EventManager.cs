@@ -11,7 +11,9 @@ public enum EventType
     StartTrivia,
     Explanation,
     Restart,
-    Victory
+    Victory,
+    Combat,
+    Question
 }
 
 public static class EventManager
