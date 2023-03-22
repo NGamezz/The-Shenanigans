@@ -4,6 +4,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.Video;
 using Unity.VisualScripting;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class Question
@@ -50,19 +51,24 @@ public class QuestionHandler : MonoBehaviour
 
     private readonly Question nullQuestion = new();
 
+    [SerializeField] private GameObject explanationObject;
+
+    private Image explanationBackground;
+
     private bool victory = false;
 
-    private void LaunchExplanation()
+    public void LaunchExplanation(int index)
     {
-        StartCoroutine(Explanation(explanationAmount));
+        StartCoroutine(Explanation(explanationAmount, index));
     }
 
-    private IEnumerator Explanation(int delay)
+    private IEnumerator Explanation(int delay, int index)
     {
-        explanationText.gameObject.SetActive(true);
+        explanationBackground.color = GameManager.Instance.Colours[index];
+        explanationObject.SetActive(true);
         explanationText.text = CurrentQuestion.Explanation;
         yield return new WaitForSeconds(delay);
-        explanationText.gameObject.SetActive(false);
+        explanationObject.SetActive(false);
     }
 
     public void WrongAnswer(Question question)
@@ -139,7 +145,6 @@ public class QuestionHandler : MonoBehaviour
         EventManager.AddListener(EventType.Victory, Victory);
         EventManager.AddListener(EventType.StartTrivia, Starting);
         EventManager.AddListener(EventType.Restart, Restart);
-        EventManager.AddListener(EventType.Explanation, LaunchExplanation);
     }
 
     private void Restart()
@@ -167,6 +172,7 @@ public class QuestionHandler : MonoBehaviour
         {
             Instance = this;
         }
+        explanationBackground = explanationObject.GetComponentInChildren<Image>();
     }
 
     private void Start()

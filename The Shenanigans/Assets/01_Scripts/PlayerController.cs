@@ -25,6 +25,8 @@ public class PlayerController : MonoBehaviour
             Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
+    [SerializeField] private AudioClip[] correctOrWrongAudio;
+    [SerializeField] private AudioSource audioSource;
 
     [SerializeField] private VideoClip[] attackClips;
     [SerializeField] private VideoPlayer videoPlayer;
@@ -63,13 +65,17 @@ public class PlayerController : MonoBehaviour
         if (options[answer].text == currentQuestion.Answer)
         {
             SkipTurn = false;
+            audioSource.clip = correctOrWrongAudio[0];
+            audioSource.Play();
             StartAttack();
         }
         else
         {
+            audioSource.clip = correctOrWrongAudio[1];
+            audioSource.Play();
             SkipTurn = true;
             QuestionHandler.Instance.WrongAnswer(currentQuestion);
-            EventManager.InvokeEvent(EventType.Explanation);
+            QuestionHandler.Instance.LaunchExplanation(WhichPlayerType);
             GameManager.Instance.ChangeScore(0.1f, false);
             GameManager.Instance.ChangeTurn();
         }
@@ -146,7 +152,7 @@ public class PlayerController : MonoBehaviour
         attackUIObject.SetActive(false);
         uiObject.SetActive(false);
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2f);
 
         QuestionHandler.Instance.QuestionText.gameObject.SetActive(true);
         InputSystem.EnableDevice(CurrentGamepad);
@@ -180,8 +186,8 @@ public class PlayerController : MonoBehaviour
         {
             //EventManager.InvokeEvent(EventType.Restart);
             //Restart();
-            playerInput.user.UnpairDevices();
             UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+            playerInput.user.UnpairDevices();
             Destroy(gameObject);
         }
     }
@@ -280,9 +286,9 @@ public class PlayerController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
+        if (device.GetType() == typeof(XInputControllerWindows))
         {
-            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
+            CurrentGamepad = (XInputControllerWindows)device;
         }
         else if (device.GetType() == typeof(XInputController))
         {
