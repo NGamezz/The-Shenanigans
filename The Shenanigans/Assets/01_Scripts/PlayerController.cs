@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using System.Xml.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
@@ -180,7 +181,6 @@ public class PlayerController : MonoBehaviour
         EventManager.InvokeEvent(EventType.DeviceLost);
     }
 
-
     public void ChoosePlayer(int playerIndex)
     {
         WhichPlayerType = playerIndex;
@@ -217,12 +217,14 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        EventManager.AddListener(EventType.Victory, () => image.enabled = false);
         EventManager.AddListener(EventType.StartTrivia, GameStart);
         EventManager.AddListener(EventType.Restart, Restart);
     }
 
     private void OnDisable()
     {
+        EventManager.RemoveListener(EventType.Victory, () => image.enabled = false);
         EventManager.RemoveListener(EventType.StartTrivia, GameStart);
         EventManager.RemoveListener(EventType.Restart, Restart);
     }

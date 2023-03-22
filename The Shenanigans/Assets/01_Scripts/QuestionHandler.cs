@@ -73,7 +73,10 @@ public class QuestionHandler : MonoBehaviour
 
     public void WrongAnswer(Question question)
     {
-        wrongQuestions.Add(question);
+        if (!wrongQuestions.Contains(question))
+        {
+            wrongQuestions.Add(question);
+        }
     }
 
     public Question GetQuestion()
@@ -111,11 +114,6 @@ public class QuestionHandler : MonoBehaviour
         return CurrentQuestion;
     }
 
-    private void Victory()
-    {
-        victory = true;
-    }
-
     public void SetQuestionObject(TMP_Text textObject)
     {
         questionText = textObject;
@@ -139,15 +137,15 @@ public class QuestionHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.Victory, Victory);
-        EventManager.AddListener(EventType.StartTrivia, Starting);
+        EventManager.AddListener(EventType.Victory, () => victory = true);
+        EventManager.AddListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
         EventManager.AddListener(EventType.Restart, Restart);
     }
 
     private void OnDisable()
     {
-        EventManager.RemoveListener(EventType.Victory, Victory);
-        EventManager.RemoveListener(EventType.StartTrivia, Starting);
+        EventManager.RemoveListener(EventType.Victory, () => victory = true);
+        EventManager.RemoveListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
         EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
@@ -195,10 +193,5 @@ public class QuestionHandler : MonoBehaviour
         CurrentQuestion.UsedFakeAnswers.Add(current);
         CurrentQuestion.FakeAnswers.Remove(current);
         return current;
-    }
-
-    private void Starting()
-    {
-        Invoke(nameof(LaunchQuestion), 0.6f);
     }
 }
