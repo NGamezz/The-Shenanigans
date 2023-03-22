@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.InputSystem.XInput;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -23,9 +24,18 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GameObject cartridgeObject;
 
+    [SerializeField] private Slider healthSlider;
+
+    public Color[] Colours = new Color[3];
+
     [SerializeField] private TMP_Text scoreText;
 
     [SerializeField] private GameObject victory;
+
+    [SerializeField] private Vector3 offSet;
+
+    private int height = 0;
+    private int width = 0;
 
     private bool started = false;
 
@@ -76,14 +86,9 @@ public class GameManager : MonoBehaviour
 
     public void ChangeScore(float change, bool add)
     {
-        if (add)
-        {
-            score += change;
-        }
-        else
-        {
-            score -= change;
-        }
+        score = add ? score + change : score - change;
+        healthSlider.value = add ? healthSlider.value - change : healthSlider.value + change;
+
         if (score >= 1)
         {
             score = 1;
@@ -93,7 +98,9 @@ public class GameManager : MonoBehaviour
         {
             score = -0.5f;
         }
-        scoreText.text = score.ToString();
+
+        int result = (int)(score * 100);
+        scoreText.text = result.ToString();
         spriteRendererMaterial.SetFloat("_Dissolve", score);
     }
 
@@ -120,6 +127,9 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        healthSlider.value = healthSlider.maxValue;
+        width = Screen.currentResolution.width;
+        height = Screen.currentResolution.height;
         scoreText.text = 0.ToString();
         IsTurn = 1;
         AddGamePad();
@@ -159,6 +169,14 @@ public class GameManager : MonoBehaviour
 
     private void StartTrivia()
     {
+        int playerIndex = 0;
+        foreach (PlayerController player in players)
+        {
+            player.Position.x = (-width / 2 / 100) + (playerIndex + (width / 12 / 100)) * offSet.x;
+            player.Position.y = (-height / 4 / 100);
+            playerIndex++;
+        }
+
         cartridgeObject.SetActive(true);
         scoreText.gameObject.SetActive(true);
         IsTurn = 1;

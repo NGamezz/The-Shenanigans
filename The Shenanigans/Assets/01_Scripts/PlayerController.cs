@@ -22,7 +22,6 @@ public class PlayerController : MonoBehaviour
             if (!gameStarted) { return; }
             uiObject.SetActive(value);
             attackUIObject.SetActive(false);
-            playerMesh[WhichPlayerType].SetActive(value);
             Invoke(nameof(AnswerHandling), 0.7f);
         }
     }
@@ -36,7 +35,12 @@ public class PlayerController : MonoBehaviour
     public bool SkipTurn { get; set; }
     public int Score { get; private set; }
 
+    public Vector3 Position;
+
+    [SerializeField] private Button[] triviaButtons = new Button[3];
+
     [SerializeField] private GameObject[] playerMesh;
+    [SerializeField] private Image attackImage;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
     [SerializeField] private GameObject attackUIObject;
@@ -45,7 +49,7 @@ public class PlayerController : MonoBehaviour
 
     private float scoreGain;
 
-    [SerializeField] private bool currentTurn;
+    [SerializeField] private bool currentTurn = false;
     [SerializeField] private float moveSpeed;
 
     private bool gameStarted = false;
@@ -204,7 +208,18 @@ public class PlayerController : MonoBehaviour
 
     private void GameStart()
     {
+        attackImage.color = GameManager.Instance.Colours[WhichPlayerType];
+
+        foreach (Button button in triviaButtons)
+        {
+            ColorBlock colorBlock = button.colors;
+            colorBlock.normalColor = GameManager.Instance.Colours[WhichPlayerType];
+            button.colors = colorBlock;
+        }
+
         gameStarted = true;
+        playerMesh[WhichPlayerType].transform.position = Position;
+        playerMesh[WhichPlayerType].SetActive(true);
         if (!currentTurn) { return; }
         Invoke(nameof(AnswerHandling), 0.7f);
         uiObject.SetActive(true);
@@ -232,7 +247,11 @@ public class PlayerController : MonoBehaviour
         {
             CurrentGamepad = (XInputController)device;
         }
-        UnityEngine.Cursor.lockState = CursorLockMode.Locked;
+
+        if (!currentTurn)
+        {
+            InputSystem.DisableDevice(CurrentGamepad);
+        }
     }
 
     //public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();

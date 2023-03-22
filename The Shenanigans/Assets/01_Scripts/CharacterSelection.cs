@@ -1,41 +1,47 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class CharacterSelection : MonoBehaviour
 {
-    public int SelectedCharacter { get; private set; }
     [SerializeField] private int GameSceneIndex;
-    [SerializeField] GameObject[] characters;
     private int playerIndex = 0;
+    [SerializeField] private Button[] buttons = new Button[3];
+    private Color[] colours => GameManager.Instance.Colours;
 
-    public void NextCharacter()
+    private int playerType = 0;
+
+    private void Start()
     {
-        characters[SelectedCharacter].SetActive(false);
-        SelectedCharacter = (SelectedCharacter + 1) % characters.Length;
-        characters[SelectedCharacter].SetActive(true);
+        foreach (Button button in buttons)
+        {
+            ColorBlock colorBlock = button.colors;
+            colorBlock.selectedColor = colours[playerIndex];
+            button.colors = colorBlock;
+        }
     }
 
-    public void SelectCharacter()
+    public void SelectCharacter(int index)
     {
-        GameManager.Instance.Players[playerIndex].ChoosePlayer(SelectedCharacter);
+        playerType = index;
+
+        GameManager.Instance.Players[playerIndex].ChoosePlayer(playerType);
+
         if (playerIndex == GameManager.Instance.Players.Count - 1)
         {
             SceneManager.LoadScene(GameSceneIndex);
             EventManager.InvokeEvent(EventType.StartTrivia);
             return;
         }
-        playerIndex++;
-        GameManager.Instance.ChangeTurn();
-    }
 
-    public void PreviousCharacter()
-    {
-        characters[SelectedCharacter].SetActive(false);
-        SelectedCharacter--;
-        if (SelectedCharacter < 0)
+        playerIndex++;
+
+        foreach (Button button in buttons)
         {
-            SelectedCharacter = characters.Length - 1;
+            ColorBlock colorBlock = button.colors;
+            colorBlock.selectedColor = colours[playerIndex];
+            button.colors = colorBlock;
         }
-        characters[SelectedCharacter].SetActive(true);
+        GameManager.Instance.ChangeTurn();
     }
 }
