@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using System.Xml.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
@@ -20,11 +21,14 @@ public class PlayerController : MonoBehaviour
         {
             currentTurn = value;
             if (!gameStarted) { return; }
+            if (highLights[WhichPlayerType] == null) { return; }
+            highLights[WhichPlayerType].SetActive(value);
             uiObject.SetActive(value);
             attackUIObject.SetActive(false);
-            Invoke(nameof(AnswerHandling), 0.7f);
+            Invoke(nameof(AnswerHandling), 0.6f);
         }
     }
+
     [SerializeField] private AudioClip[] correctOrWrongAudio;
     [SerializeField] private AudioSource audioSource;
 
@@ -42,6 +46,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Button[] triviaButtons = new Button[3];
 
     [SerializeField] private GameObject[] playerMesh = new GameObject[3];
+    [SerializeField] private GameObject[] highLights = new GameObject[3];
     [SerializeField] private Image attackImage;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
@@ -84,6 +89,7 @@ public class PlayerController : MonoBehaviour
 
     private void StartAttack()
     {
+        EventManager.InvokeEvent(EventType.Combat);
         QuestionHandler.Instance.QuestionText.gameObject.SetActive(false);
         uiObject.SetActive(false);
         List<string> attacks = new();
@@ -159,6 +165,7 @@ public class PlayerController : MonoBehaviour
         image.enabled = false;
         uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
+        EventManager.InvokeEvent(EventType.Question);
         AnswerHandling();
     }
 
@@ -174,7 +181,6 @@ public class PlayerController : MonoBehaviour
         EventManager.InvokeEvent(EventType.DeviceLost);
     }
 
-
     public void ChoosePlayer(int playerIndex)
     {
         WhichPlayerType = playerIndex;
@@ -184,11 +190,7 @@ public class PlayerController : MonoBehaviour
     {
         if (restart)
         {
-            //EventManager.InvokeEvent(EventType.Restart);
-            //Restart();
-            UnityEngine.SceneManagement.SceneManager.LoadScene(0);
-            playerInput.user.UnpairDevices();
-            Destroy(gameObject);
+            EventManager.InvokeEvent(EventType.Restart);
         }
     }
 
@@ -215,24 +217,29 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("TestEnable");
-        EventManager.AddListener(EventType.StartTrivia, () => GameStart());
+        EventManager.AddListener(EventType.Victory, () => image.enabled = false);
+        EventManager.AddListener(EventType.StartTrivia, GameStart);
+        EventManager.AddListener(EventType.Restart, Restart);
     }
 
     private void OnDisable()
     {
-        Debug.Log("TestDisable");
+        EventManager.RemoveListener(EventType.Victory, () => image.enabled = false);
+        EventManager.RemoveListener(EventType.StartTrivia, GameStart);
+        EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
     private void RestartHandling()
     {
-        EventManager.RemoveListener(EventType.StartTrivia, () => GameStart());
+        playerInput.user.UnpairDevices();
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        Destroy(gameObject);
+
         foreach (GameObject objects in playerMesh)
         {
             objects.SetActive(false);
         }
 
-        playerInput.user.UnpairDevices();
         uiObject.SetActive(false);
         attackUIObject.SetActive(false);
         EventSystem.current.SetSelectedGameObject(null);
@@ -241,7 +248,8 @@ public class PlayerController : MonoBehaviour
 
     private void GameStart()
     {
-        Debug.Log(WhichPlayerType);
+        if (highLights[WhichPlayerType] == null) { return; }
+        highLights[WhichPlayerType].SetActive(currentTurn);
         attackImage.color = GameManager.Instance.Colours[WhichPlayerType];
 
         foreach (Button button in triviaButtons)
@@ -257,7 +265,7 @@ public class PlayerController : MonoBehaviour
         playerMesh[WhichPlayerType].SetActive(true);
 
         if (!currentTurn) { return; }
-        Invoke(nameof(AnswerHandling), 0.7f);
+        Invoke(nameof(AnswerHandling), 0.6f);
         uiObject.SetActive(true);
         playerMesh[WhichPlayerType].SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
@@ -266,19 +274,13 @@ public class PlayerController : MonoBehaviour
 
     private void Restart()
     {
-        Position = Vector3.zero;
-        WhichPlayerType = 0;
-        currentTurn = false;
         RestartHandling();
-        Destroy(this.gameObject);
-        Destroy(this);
     }
 
     private void Start()
     {
         WhichPlayerType = 0;
         scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
-        Debug.Log(scoreGain);
 
         EventManager.InvokeEvent(EventType.JoinPlayer);
         EventSystem.current.SetSelectedGameObject(null);

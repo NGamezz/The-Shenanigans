@@ -73,7 +73,10 @@ public class QuestionHandler : MonoBehaviour
 
     public void WrongAnswer(Question question)
     {
-        wrongQuestions.Add(question);
+        if (!wrongQuestions.Contains(question))
+        {
+            wrongQuestions.Add(question);
+        }
     }
 
     public Question GetQuestion()
@@ -82,41 +85,33 @@ public class QuestionHandler : MonoBehaviour
         {
             if (wrongQuestions.Count == 0)
             {
-                HashSet<Question> noDupeQuestions = new HashSet<Question>();
+                HashSet<Question> noDupeQuestions = new();
                 noDupeQuestions.AddRange(usedQuestions);
                 questions.AddRange(noDupeQuestions);
                 usedQuestions.Clear();
             }
-
-            questions.AddRange(wrongQuestions);
-            CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
-            CurrentQuestion.Reset();
-            wrongQuestions.Clear();
+            else
+            {
+                questions.AddRange(wrongQuestions);
+                CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
+                CurrentQuestion.Reset();
+                wrongQuestions.Clear();
+            }
         }
         else
         {
             CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
         }
 
-        if (!usedQuestions.Contains(CurrentQuestion))
-        {
-            usedQuestions.Add(CurrentQuestion);
-        }
-
+        usedQuestions.Add(CurrentQuestion);
         questions.Remove(CurrentQuestion);
 
         if (CurrentQuestion.FakeAnswers.Count == 0)
         {
-            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
-            CurrentQuestion.UsedFakeAnswers.Clear();
+            CurrentQuestion.Reset();
         }
 
         return CurrentQuestion;
-    }
-
-    private void Victory()
-    {
-        victory = true;
     }
 
     public void SetQuestionObject(TMP_Text textObject)
@@ -142,9 +137,16 @@ public class QuestionHandler : MonoBehaviour
 
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.Victory, Victory);
-        EventManager.AddListener(EventType.StartTrivia, Starting);
+        EventManager.AddListener(EventType.Victory, () => victory = true);
+        EventManager.AddListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
         EventManager.AddListener(EventType.Restart, Restart);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.RemoveListener(EventType.Victory, () => victory = true);
+        EventManager.RemoveListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
+        EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
     private void Restart()
@@ -166,7 +168,7 @@ public class QuestionHandler : MonoBehaviour
         if (Instance != null)
         {
             Destroy(Instance);
-            Instance = null;
+            Instance = this;
         }
         if (Instance == null)
         {
@@ -183,15 +185,13 @@ public class QuestionHandler : MonoBehaviour
 
     public string GetFakeAnswers()
     {
-        if (CurrentQuestion.FakeAnswers.Count == 0) { return "Null"; }
+        if (CurrentQuestion.FakeAnswers.Count == 0)
+        {
+            CurrentQuestion.Reset();
+        }
         string current = CurrentQuestion.FakeAnswers[Random.Range(0, CurrentQuestion.FakeAnswers.Count)];
         CurrentQuestion.UsedFakeAnswers.Add(current);
         CurrentQuestion.FakeAnswers.Remove(current);
         return current;
-    }
-
-    private void Starting()
-    {
-        Invoke(nameof(LaunchQuestion), 0.6f);
     }
 }

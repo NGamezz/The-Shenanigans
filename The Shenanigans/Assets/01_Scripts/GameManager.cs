@@ -29,6 +29,10 @@ public class GameManager : MonoBehaviour
 
     public Color[] Colours = new Color[3];
 
+    [SerializeField] private AudioClip battle;
+    [SerializeField] private AudioClip trivia;
+    [SerializeField] private AudioSource audioSource;
+
     [SerializeField] private GameObject victory;
 
     [SerializeField] private Vector3 offSet;
@@ -40,6 +44,20 @@ public class GameManager : MonoBehaviour
 
     private float score = 0;
 
+    private void Combat()
+    {
+        if (audioSource == null) { return; }
+        audioSource.clip = battle;
+        audioSource.Play();
+    }
+
+    private void Trivia()
+    {
+        if (audioSource == null) { return; }
+        audioSource.clip = trivia;
+        audioSource.Play();
+    }
+
     public void AddGamePad()
     {
         foreach (Gamepad gamepad in Gamepad.all)
@@ -48,9 +66,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Disable gamepad when it's not their turn, gonna have to figure out a function for that later.
-    /// </summary>
     public void ChangeTurn()
     {
         QuestionHandler.Instance.LaunchQuestion();
@@ -91,6 +106,7 @@ public class GameManager : MonoBehaviour
         {
             score = 1;
             EventManager.InvokeEvent(EventType.Victory);
+            Invoke(nameof(RestartTrigger), 2f);
             victory.SetActive(true);
         }
         if (score <= -0.5f)
@@ -141,11 +157,10 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
+        if (Instance != null)
         {
             Destroy(Instance);
-            Destroy(Instance.gameObject);
-            Instance = null;
+            Instance = this;
         }
         if (Instance == null)
         {
@@ -157,22 +172,47 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
+        EventManager.AddListener(EventType.Combat, Combat);
+        EventManager.AddListener(EventType.Question, Trivia);
         EventManager.AddListener(EventType.Restart, OnRestart);
         EventManager.AddListener(EventType.JoinPlayer, PlayerJoined);
-        EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
-        EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
-        EventManager.AddListener(EventType.StartGame, () => OnStart());
-        EventManager.AddListener(EventType.StartTrivia, () => StartTrivia());
+        EventManager.AddListener(EventType.DeviceLost, OnDeviceLost);
+        EventManager.AddListener(EventType.RegainDevice, OnRegainDevice);
+        EventManager.AddListener(EventType.StartGame, OnStart);
+        EventManager.AddListener(EventType.StartTrivia, StartTrivia);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.RemoveListener(EventType.Combat, Combat);
+        EventManager.RemoveListener(EventType.Question, Trivia);
+        EventManager.RemoveListener(EventType.Restart, OnRestart);
+        EventManager.RemoveListener(EventType.JoinPlayer, PlayerJoined);
+        EventManager.RemoveListener(EventType.DeviceLost, OnDeviceLost);
+        EventManager.RemoveListener(EventType.RegainDevice, OnRegainDevice);
+        EventManager.RemoveListener(EventType.StartGame, OnStart);
+        EventManager.RemoveListener(EventType.StartTrivia, StartTrivia);
     }
 
     private void StartTrivia()
     {
+        if (this == null) { return; }
+        EventManager.InvokeEvent(EventType.Question);
+        PlayerInputManager.DisableJoining();
+
         int playerIndex = 0;
         foreach (PlayerController player in players)
         {
             player.Position.x = (-width / 2 / 100) + (playerIndex + (width / 12 / 100)) * offSet.x;
             player.Position.y = (-height / 5 / 100);
             playerIndex++;
+        }
+
+        if (cartridgeObject == null)
+        {
+            Debug.Log(this);
+            cartridgeObject = GetComponentInChildren<Boss>().gameObject;
+            Debug.Log(cartridgeObject);
         }
 
         cartridgeObject.SetActive(true);
@@ -214,8 +254,14 @@ public class GameManager : MonoBehaviour
         EventManager.InvokeEvent(EventType.StartGame);
     }
 
+    private void RestartTrigger()
+    {
+        EventManager.InvokeEvent(EventType.Restart);
+    }
+
     private void OnRestart()
     {
+        if (this == null) { return; }
         PlayerInputManager inputManager = FindObjectOfType<PlayerInputManager>();
         inputManager.EnableJoining();
         healthSlider.value = healthSlider.maxValue;
