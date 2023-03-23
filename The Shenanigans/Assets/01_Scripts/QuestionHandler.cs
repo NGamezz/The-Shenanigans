@@ -152,13 +152,13 @@ public class QuestionHandler : MonoBehaviour
     private void OnDisable()
     {
         EventManager.RemoveListener(EventType.Victory, () => victory = true);
-        EventManager.RemoveListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
+        EventManager.RemoveListener(EventType.StartTrivia, StartQuestion);
         EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
     private void Restart()
     {
-        HashSet<Question> noDupeQuestions = new HashSet<Question>();
+        HashSet<Question> noDupeQuestions = new();
         noDupeQuestions.AddRange(usedQuestions);
         questions.Clear();
         usedQuestions.Clear();
