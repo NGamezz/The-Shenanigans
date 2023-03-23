@@ -215,16 +215,21 @@ public class PlayerController : MonoBehaviour
         EventManager.InvokeEvent(EventType.JoinPlayer);
     }
 
+    private void DisableImage()
+    {
+        image.enabled = false;
+    }
+
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.Victory, () => image.enabled = false);
+        EventManager.AddListener(EventType.Victory, DisableImage);
         EventManager.AddListener(EventType.StartTrivia, GameStart);
         EventManager.AddListener(EventType.Restart, Restart);
     }
 
     private void OnDisable()
     {
-        EventManager.RemoveListener(EventType.Victory, () => image.enabled = false);
+        EventManager.RemoveListener(EventType.Victory, DisableImage);
         EventManager.RemoveListener(EventType.StartTrivia, GameStart);
         EventManager.RemoveListener(EventType.Restart, Restart);
     }

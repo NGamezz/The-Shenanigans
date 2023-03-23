@@ -135,23 +135,30 @@ public class QuestionHandler : MonoBehaviour
         return answer;
     }
 
+    private void StartQuestion()
+    {
+        if (this == null) { return; }
+        Invoke(nameof(LaunchQuestion), 0.6f);
+    }
+
     private void OnEnable()
     {
+        if (this == null) { return; }
         EventManager.AddListener(EventType.Victory, () => victory = true);
-        EventManager.AddListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
+        EventManager.AddListener(EventType.StartTrivia, StartQuestion);
         EventManager.AddListener(EventType.Restart, Restart);
     }
 
     private void OnDisable()
     {
         EventManager.RemoveListener(EventType.Victory, () => victory = true);
-        EventManager.RemoveListener(EventType.StartTrivia, () => Invoke(nameof(LaunchQuestion), 0.6f));
+        EventManager.RemoveListener(EventType.StartTrivia, StartQuestion);
         EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
     private void Restart()
     {
-        HashSet<Question> noDupeQuestions = new HashSet<Question>();
+        HashSet<Question> noDupeQuestions = new();
         noDupeQuestions.AddRange(usedQuestions);
         questions.Clear();
         usedQuestions.Clear();
