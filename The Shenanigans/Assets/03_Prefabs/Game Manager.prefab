@@ -542,6 +542,9 @@ MonoBehaviour:
   - {r: 1, g: 0.60341835, b: 0, a: 1}
   - {r: 0, g: 0.2204752, b: 1, a: 1}
   - {r: 1, g: 0.959195, b: 0, a: 1}
+  battle: {fileID: 0}
+  trivia: {fileID: 0}
+  audioSource: {fileID: 0}
   victory: {fileID: 3322926553795070525}
   offSet: {x: 3, y: 0, z: 0}
 --- !u!114 &3322926553798907313
@@ -635,6 +638,7 @@ MonoBehaviour:
   - Prototyping
   - Dungeon Design
   - Kill A Darling
+  explanationObject: {fileID: 0}
 --- !u!114 &3322926553798907318
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -948,7 +952,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 4d0d0a96d36aac94dbc67a5925a1ea83, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -1012,7 +1016,7 @@ MonoBehaviour:
   m_margin: {x: -558.79956, y: 0, z: 0, w: -139.69986}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!1 &3322926554278357757
