@@ -1511,8 +1511,14 @@ MonoBehaviour:
   spriteRendererMaterial: {fileID: 0}
   spriteRenderer: {fileID: 0}
   cartridgeObject: {fileID: 1383421549}
+  healthSlider: {fileID: 0}
+  Colours:
+  - {r: 0, g: 0, b: 0, a: 0}
+  - {r: 0, g: 0, b: 0, a: 0}
+  - {r: 0, g: 0, b: 0, a: 0}
   scoreText: {fileID: 1593631084}
   victory: {fileID: 183799955}
+  offSet: {x: 0, y: 0, z: 0}
 --- !u!114 &1101046265
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1574,6 +1580,80 @@ MonoBehaviour:
     - Top of the line machine.
     - Anything.
     UsedFakeAnswers: []
+  - QuestionText: Wat is de primaire rol van game designer?
+    Answer: Beslissingen maken over hoe het spel in elkaar zit.
+    Explanation: De rol van game designer varieert soms. Maar de algemene rode draad
+      is dat de designer zich bezig houdt met hoe het spel werkt, wat er gebeurt
+      en hoe de levels in elkaar zitten.
+    FakeAnswers:
+    - Andere mensen helpen als ze vragen hebben
+    - visueele vormgeving
+    UsedFakeAnswers: []
+  - QuestionText: Moet je kunen programmeren als game designer?
+    Answer: Ja
+    Explanation: Soms moet je coderen, het kan zijn dat je zelf een keer iets moet
+      programmeren als een dev dat even niet kan doen.
+    FakeAnswers:
+    - Nee
+    - Alleen als je wilt
+    UsedFakeAnswers: []
+  - QuestionText: Moet je als Artist 3D modellen kunnen maken?
+    Answer: Ja
+    Explanation: Soms wel, het ligt aan de opdracht
+    FakeAnswers:
+    - Nee
+    - Alleen als je wilt
+    UsedFakeAnswers: []
+  - QuestionText: Wat is concept art?
+    Answer: Tekeningen om een idee te visualisen
+    Explanation: Met concept art kan je een grof idee laten zien, grote studios hebben
+      vaak meerdere concept tekeningen voor ieder model wat ze in het spel hebben
+      gedaan.
+    FakeAnswers:
+    - Kunst dat voor reclame wordt gebruikt
+    - Uitendelijke kunst wat in de game gebruikt wordt.
+    UsedFakeAnswers: []
+  - QuestionText: Wat doet een developer
+    Answer: Programmeren
+    Explanation: Devs zijn verantwoordelijk voor het programmeren van een spel.
+    FakeAnswers:
+    - Zij doen hetzelfde als de designers
+    - Implementeren de creaties van de artists in het spel.
+    UsedFakeAnswers: []
+  - QuestionText: Welke game engine wordt er gebruikt op HKU game development
+    Answer: Unity
+    Explanation: Er zijn veel verschillende engines, maar hier leer je met Unity
+      werken.
+    FakeAnswers:
+    - Source
+    - Unreal
+    UsedFakeAnswers: []
+  - QuestionText: Waar kan je terecht voor stress of andere klachten?
+    Answer: Contactpersoon of decaan.
+    Explanation: Er zijn veel plekken waar je hier terecht kan met problemen, je
+      contactpersoon en decaan zijn er twee van. Kijk op de website voor een lijst
+      van alle contactpersonen
+    FakeAnswers:
+    - Bij familie en vrienden
+    - Je persoonlijke therapeut
+    UsedFakeAnswers: []
+  - QuestionText: Wat moet je doen voordat je een werkplaats in de HKU mag gebruiken?
+    Answer: Cursus volgen over de apparatuur en als het moet een afspraak maken
+    Explanation: Veel werkplaatsen bij HKU gebruiken gevaarlijke apparatuur dus een
+      cursus volgens is belangrijk, een afspraak maken is niet altijd nodig maar
+      alsnog beleeft.
+    FakeAnswers:
+    - Betalen
+    - Niks! Je kan gewoon naar binnen lopen!
+    UsedFakeAnswers: []
+  - QuestionText: Hoeveel uur is een studiepunt ongeveer waard?
+    Answer: 28
+    Explanation: 'Het klinkt misschien veel, maar een srudiepunt kost je gemmideld
+      28 uur. '
+    FakeAnswers:
+    - 18
+    - 12
+    UsedFakeAnswers: []
   explanationText: {fileID: 1694697697}
   explanationAmount: 5
   questionText: {fileID: 0}
@@ -1617,10 +1697,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GameSceneIndex: 0
-  characters:
-  - {fileID: 1517343540}
-  - {fileID: 29005352}
-  - {fileID: 1590358806}
+  buttons:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &1383421549
 GameObject:
   m_ObjectHideFlags: 0
