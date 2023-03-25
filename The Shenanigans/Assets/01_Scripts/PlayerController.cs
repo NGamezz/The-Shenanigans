@@ -218,6 +218,7 @@ public class PlayerController : MonoBehaviour
     private void DisableImage()
     {
         image.enabled = false;
+        image.gameObject.SetActive(false);
     }
 
     private void OnEnable()

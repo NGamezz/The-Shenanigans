@@ -107,6 +107,8 @@ public class GameManager : MonoBehaviour
             score = 1;
             EventManager.InvokeEvent(EventType.Victory);
             Invoke(nameof(RestartTrigger), 2f);
+            cartridgeObject.SetActive(false);
+            healthSlider.gameObject.SetActive(false);
             victory.SetActive(true);
         }
         if (score <= -0.5f)
