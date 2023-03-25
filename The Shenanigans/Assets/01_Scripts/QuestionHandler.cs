@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.Video;
+using Unity.VisualScripting;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class Question
@@ -10,6 +12,13 @@ public class Question
     public string QuestionText;
     public string Answer;
     public string Explanation;
+
+    public void Reset()
+    {
+        FakeAnswers.Clear();
+        FakeAnswers.AddRange(UsedFakeAnswers);
+        UsedFakeAnswers.Clear();
+    }
 
     public List<string> FakeAnswers = new();
     public List<string> UsedFakeAnswers = new();
@@ -42,22 +51,32 @@ public class QuestionHandler : MonoBehaviour
 
     private readonly Question nullQuestion = new();
 
-    private void LaunchExplanation()
+    [SerializeField] private GameObject explanationObject;
+
+    private Image explanationBackground;
+
+    private bool victory = false;
+
+    public void LaunchExplanation(int index)
     {
-        StartCoroutine(Explanation(explanationAmount));
+        StartCoroutine(Explanation(explanationAmount, index));
     }
 
-    private IEnumerator Explanation(int delay)
+    private IEnumerator Explanation(int delay, int index)
     {
-        explanationText.gameObject.SetActive(true);
+        explanationBackground.color = GameManager.Instance.Colours[index];
+        explanationObject.SetActive(true);
         explanationText.text = CurrentQuestion.Explanation;
         yield return new WaitForSeconds(delay);
-        explanationText.gameObject.SetActive(false);
+        explanationObject.SetActive(false);
     }
 
     public void WrongAnswer(Question question)
     {
-        wrongQuestions.Add(question);
+        if (!wrongQuestions.Contains(question))
+        {
+            wrongQuestions.Add(question);
+        }
     }
 
     public Question GetQuestion()
@@ -66,29 +85,30 @@ public class QuestionHandler : MonoBehaviour
         {
             if (wrongQuestions.Count == 0)
             {
-                questions.AddRange(usedQuestions);
+                HashSet<Question> noDupeQuestions = new();
+                noDupeQuestions.AddRange(usedQuestions);
+                questions.AddRange(noDupeQuestions);
+                usedQuestions.Clear();
             }
-            questions.AddRange(wrongQuestions);
-            CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
-            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
-            CurrentQuestion.UsedFakeAnswers.Clear();
-            wrongQuestions.Clear();
+            else
+            {
+                questions.AddRange(wrongQuestions);
+                CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
+                CurrentQuestion.Reset();
+                wrongQuestions.Clear();
+            }
         }
         else
         {
             CurrentQuestion = questions[Random.Range(0, questions.Count - 1)];
         }
 
-        if (!usedQuestions.Contains(CurrentQuestion))
-        {
-            usedQuestions.Add(CurrentQuestion);
-        }
+        usedQuestions.Add(CurrentQuestion);
         questions.Remove(CurrentQuestion);
 
         if (CurrentQuestion.FakeAnswers.Count == 0)
         {
-            CurrentQuestion.FakeAnswers.AddRange(CurrentQuestion.UsedFakeAnswers);
-            CurrentQuestion.UsedFakeAnswers.Clear();
+            CurrentQuestion.Reset();
         }
 
         return CurrentQuestion;
@@ -101,7 +121,11 @@ public class QuestionHandler : MonoBehaviour
 
     public void LaunchQuestion()
     {
-        if (questionText == null) { return; }
+        if (victory)
+        {
+            questionText.text = "";
+        }
+        if (questionText == null || victory) { return; }
         questionText.text = GetQuestion().QuestionText;
     }
 
@@ -111,22 +135,53 @@ public class QuestionHandler : MonoBehaviour
         return answer;
     }
 
+    private void StartQuestion()
+    {
+        if (this == null) { return; }
+        Invoke(nameof(LaunchQuestion), 0.6f);
+    }
+
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.StartTrivia, Starting);
-        EventManager.AddListener(EventType.Explanation, LaunchExplanation);
+        if (this == null) { return; }
+        EventManager.AddListener(EventType.Victory, () => victory = true);
+        EventManager.AddListener(EventType.StartTrivia, StartQuestion);
+        EventManager.AddListener(EventType.Restart, Restart);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.RemoveListener(EventType.Victory, () => victory = true);
+        EventManager.RemoveListener(EventType.StartTrivia, StartQuestion);
+        EventManager.RemoveListener(EventType.Restart, Restart);
+    }
+
+    private void Restart()
+    {
+        HashSet<Question> noDupeQuestions = new();
+        noDupeQuestions.AddRange(usedQuestions);
+        questions.Clear();
+        usedQuestions.Clear();
+        wrongQuestions.Clear();
+        questions.AddRange(noDupeQuestions);
+        foreach (Question question in questions)
+        {
+            question.Reset();
+        }
     }
 
     private void Awake()
     {
+        if (Instance != null)
+        {
+            Destroy(Instance);
+            Instance = this;
+        }
         if (Instance == null)
         {
             Instance = this;
         }
-        if (Instance != this)
-        {
-            Destroy(gameObject);
-        }
+        explanationBackground = explanationObject.GetComponentInChildren<Image>();
     }
 
     private void Start()
@@ -137,15 +192,13 @@ public class QuestionHandler : MonoBehaviour
 
     public string GetFakeAnswers()
     {
-        if (CurrentQuestion.FakeAnswers.Count == 0) { return "Null"; }
+        if (CurrentQuestion.FakeAnswers.Count == 0)
+        {
+            CurrentQuestion.Reset();
+        }
         string current = CurrentQuestion.FakeAnswers[Random.Range(0, CurrentQuestion.FakeAnswers.Count)];
         CurrentQuestion.UsedFakeAnswers.Add(current);
         CurrentQuestion.FakeAnswers.Remove(current);
         return current;
-    }
-
-    private void Starting()
-    {
-        Invoke(nameof(LaunchQuestion), 0.6f);
     }
 }

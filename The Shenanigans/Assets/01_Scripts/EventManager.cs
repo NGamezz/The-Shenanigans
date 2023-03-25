@@ -10,7 +10,10 @@ public enum EventType
     StartGame,
     StartTrivia,
     Explanation,
-    Restart
+    Restart,
+    Victory,
+    Combat,
+    Question
 }
 
 public static class EventManager

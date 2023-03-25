@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections;
 using UnityEngine.Video;
 using UnityEngine.UI;
+using System.Xml.Serialization;
 
 public class PlayerController : MonoBehaviour
 {
@@ -20,11 +21,16 @@ public class PlayerController : MonoBehaviour
         {
             currentTurn = value;
             if (!gameStarted) { return; }
+            if (highLights[WhichPlayerType] == null) { return; }
+            highLights[WhichPlayerType].SetActive(value);
             uiObject.SetActive(value);
             attackUIObject.SetActive(false);
-            Invoke(nameof(AnswerHandling), 0.7f);
+            Invoke(nameof(AnswerHandling), 0.6f);
         }
     }
+
+    [SerializeField] private AudioClip[] correctOrWrongAudio;
+    [SerializeField] private AudioSource audioSource;
 
     [SerializeField] private VideoClip[] attackClips;
     [SerializeField] private VideoPlayer videoPlayer;
@@ -39,13 +45,16 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField] private Button[] triviaButtons = new Button[3];
 
-    [SerializeField] private GameObject[] playerMesh;
+    [SerializeField] private GameObject[] playerMesh = new GameObject[3];
+    [SerializeField] private GameObject[] highLights = new GameObject[3];
     [SerializeField] private Image attackImage;
     [SerializeField] private GameObject firstButton;
     [SerializeField] private GameObject uiObject;
     [SerializeField] private GameObject attackUIObject;
     [SerializeField] private TMP_Text[] options;
     [SerializeField] private TMP_Text[] attackOptions;
+
+    private bool restart;
 
     private float scoreGain;
 
@@ -61,13 +70,17 @@ public class PlayerController : MonoBehaviour
         if (options[answer].text == currentQuestion.Answer)
         {
             SkipTurn = false;
+            audioSource.clip = correctOrWrongAudio[0];
+            audioSource.Play();
             StartAttack();
         }
         else
         {
+            audioSource.clip = correctOrWrongAudio[1];
+            audioSource.Play();
             SkipTurn = true;
             QuestionHandler.Instance.WrongAnswer(currentQuestion);
-            EventManager.InvokeEvent(EventType.Explanation);
+            QuestionHandler.Instance.LaunchExplanation(WhichPlayerType);
             GameManager.Instance.ChangeScore(0.1f, false);
             GameManager.Instance.ChangeTurn();
         }
@@ -76,6 +89,7 @@ public class PlayerController : MonoBehaviour
 
     private void StartAttack()
     {
+        EventManager.InvokeEvent(EventType.Combat);
         QuestionHandler.Instance.QuestionText.gameObject.SetActive(false);
         uiObject.SetActive(false);
         List<string> attacks = new();
@@ -144,13 +158,14 @@ public class PlayerController : MonoBehaviour
         attackUIObject.SetActive(false);
         uiObject.SetActive(false);
 
-        yield return new WaitForSeconds(1.5f);
+        yield return new WaitForSeconds(2f);
 
         QuestionHandler.Instance.QuestionText.gameObject.SetActive(true);
         InputSystem.EnableDevice(CurrentGamepad);
         image.enabled = false;
         uiObject.SetActive(true);
         GameManager.Instance.ChangeTurn();
+        EventManager.InvokeEvent(EventType.Question);
         AnswerHandling();
     }
 
@@ -166,10 +181,17 @@ public class PlayerController : MonoBehaviour
         EventManager.InvokeEvent(EventType.DeviceLost);
     }
 
-
     public void ChoosePlayer(int playerIndex)
     {
         WhichPlayerType = playerIndex;
+    }
+
+    private void FixedUpdate()
+    {
+        if (restart)
+        {
+            EventManager.InvokeEvent(EventType.Restart);
+        }
     }
 
     private void AnswerHandling()
@@ -193,13 +215,36 @@ public class PlayerController : MonoBehaviour
         EventManager.InvokeEvent(EventType.JoinPlayer);
     }
 
+    private void DisableImage()
+    {
+        image.enabled = false;
+    }
+
     private void OnEnable()
     {
-        EventManager.AddListener(EventType.StartTrivia, () => GameStart());
+        EventManager.AddListener(EventType.Victory, DisableImage);
+        EventManager.AddListener(EventType.StartTrivia, GameStart);
+        EventManager.AddListener(EventType.Restart, Restart);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.RemoveListener(EventType.Victory, DisableImage);
+        EventManager.RemoveListener(EventType.StartTrivia, GameStart);
+        EventManager.RemoveListener(EventType.Restart, Restart);
     }
 
     private void RestartHandling()
     {
+        playerInput.user.UnpairDevices();
+        UnityEngine.SceneManagement.SceneManager.LoadScene(0);
+        Destroy(gameObject);
+
+        foreach (GameObject objects in playerMesh)
+        {
+            objects.SetActive(false);
+        }
+
         uiObject.SetActive(false);
         attackUIObject.SetActive(false);
         EventSystem.current.SetSelectedGameObject(null);
@@ -208,6 +253,8 @@ public class PlayerController : MonoBehaviour
 
     private void GameStart()
     {
+        if (highLights[WhichPlayerType] == null) { return; }
+        highLights[WhichPlayerType].SetActive(currentTurn);
         attackImage.color = GameManager.Instance.Colours[WhichPlayerType];
 
         foreach (Button button in triviaButtons)
@@ -218,20 +265,27 @@ public class PlayerController : MonoBehaviour
         }
 
         gameStarted = true;
+
         playerMesh[WhichPlayerType].transform.position = Position;
         playerMesh[WhichPlayerType].SetActive(true);
+
         if (!currentTurn) { return; }
-        Invoke(nameof(AnswerHandling), 0.7f);
+        Invoke(nameof(AnswerHandling), 0.6f);
         uiObject.SetActive(true);
         playerMesh[WhichPlayerType].SetActive(true);
         EventSystem.current.SetSelectedGameObject(null);
         EventSystem.current.SetSelectedGameObject(firstButton);
     }
 
+    private void Restart()
+    {
+        RestartHandling();
+    }
+
     private void Start()
     {
+        WhichPlayerType = 0;
         scoreGain = (1f / QuestionHandler.Instance.Questions.Count);
-        Debug.Log(scoreGain);
 
         EventManager.InvokeEvent(EventType.JoinPlayer);
         EventSystem.current.SetSelectedGameObject(null);
@@ -239,9 +293,18 @@ public class PlayerController : MonoBehaviour
         playerInput = GetComponent<PlayerInput>();
 
         var device = playerInput.devices[0];
-        if (device.GetType() == typeof(XInputControllerWindows))
+        if (device.GetType() == typeof(XboxOneGampadMacOSWireless))
         {
-            CurrentGamepad = (XInputControllerWindows)device;
+            CurrentGamepad = (XboxOneGampadMacOSWireless)device;
+        }
+        else if (device.GetType() == typeof(XInputController))
+        {
+            CurrentGamepad = (XInputController)device;
+        }
+        else if (device.GetType() == typeof(XInputController))
+        {
+            CurrentGamepad = (XInputController)device;
+            UnityEngine.Cursor.lockState = CursorLockMode.Locked;
         }
 
         if (!currentTurn)
@@ -250,5 +313,5 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
+    public void Restart(InputAction.CallbackContext context) => restart = context.ReadValueAsButton();
 }

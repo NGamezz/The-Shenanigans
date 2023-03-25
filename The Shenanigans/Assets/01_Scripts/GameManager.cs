@@ -18,6 +18,7 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private Material spriteRendererMaterial;
 
+
     [SerializeField] private List<Gamepad> gamepads = new();
 
     [SerializeField] private SpriteRenderer spriteRenderer;
@@ -28,7 +29,9 @@ public class GameManager : MonoBehaviour
 
     public Color[] Colours = new Color[3];
 
-    [SerializeField] private TMP_Text scoreText;
+    [SerializeField] private AudioClip battle;
+    [SerializeField] private AudioClip trivia;
+    [SerializeField] private AudioSource audioSource;
 
     [SerializeField] private GameObject victory;
 
@@ -41,6 +44,20 @@ public class GameManager : MonoBehaviour
 
     private float score = 0;
 
+    private void Combat()
+    {
+        if (audioSource == null) { return; }
+        audioSource.clip = battle;
+        audioSource.Play();
+    }
+
+    private void Trivia()
+    {
+        if (audioSource == null) { return; }
+        audioSource.clip = trivia;
+        audioSource.Play();
+    }
+
     public void AddGamePad()
     {
         foreach (Gamepad gamepad in Gamepad.all)
@@ -49,9 +66,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Disable gamepad when it's not their turn, gonna have to figure out a function for that later.
-    /// </summary>
     public void ChangeTurn()
     {
         QuestionHandler.Instance.LaunchQuestion();
@@ -80,7 +94,6 @@ public class GameManager : MonoBehaviour
         started = false;
         victory.SetActive(false);
         cartridgeObject.SetActive(false);
-        scoreText.gameObject.SetActive(false);
         IsTurn = 0;
     }
 
@@ -92,15 +105,14 @@ public class GameManager : MonoBehaviour
         if (score >= 1)
         {
             score = 1;
+            EventManager.InvokeEvent(EventType.Victory);
+            Invoke(nameof(RestartTrigger), 2f);
             victory.SetActive(true);
         }
         if (score <= -0.5f)
         {
             score = -0.5f;
         }
-
-        int result = (int)(score * 100);
-        scoreText.text = result.ToString();
         spriteRendererMaterial.SetFloat("_Dissolve", score);
     }
 
@@ -130,7 +142,6 @@ public class GameManager : MonoBehaviour
         healthSlider.value = healthSlider.maxValue;
         width = Screen.currentResolution.width;
         height = Screen.currentResolution.height;
-        scoreText.text = 0.ToString();
         IsTurn = 1;
         AddGamePad();
     }
@@ -148,7 +159,8 @@ public class GameManager : MonoBehaviour
     {
         if (Instance != null)
         {
-            Destroy(this);
+            Destroy(Instance);
+            Instance = this;
         }
         if (Instance == null)
         {
@@ -160,25 +172,50 @@ public class GameManager : MonoBehaviour
 
     private void OnEnable()
     {
+        EventManager.AddListener(EventType.Combat, Combat);
+        EventManager.AddListener(EventType.Question, Trivia);
+        EventManager.AddListener(EventType.Restart, OnRestart);
         EventManager.AddListener(EventType.JoinPlayer, PlayerJoined);
-        EventManager.AddListener(EventType.DeviceLost, () => OnDeviceLost());
-        EventManager.AddListener(EventType.RegainDevice, () => OnRegainDevice());
-        EventManager.AddListener(EventType.StartGame, () => OnStart());
-        EventManager.AddListener(EventType.StartTrivia, () => StartTrivia());
+        EventManager.AddListener(EventType.DeviceLost, OnDeviceLost);
+        EventManager.AddListener(EventType.RegainDevice, OnRegainDevice);
+        EventManager.AddListener(EventType.StartGame, OnStart);
+        EventManager.AddListener(EventType.StartTrivia, StartTrivia);
+    }
+
+    private void OnDisable()
+    {
+        EventManager.RemoveListener(EventType.Combat, Combat);
+        EventManager.RemoveListener(EventType.Question, Trivia);
+        EventManager.RemoveListener(EventType.Restart, OnRestart);
+        EventManager.RemoveListener(EventType.JoinPlayer, PlayerJoined);
+        EventManager.RemoveListener(EventType.DeviceLost, OnDeviceLost);
+        EventManager.RemoveListener(EventType.RegainDevice, OnRegainDevice);
+        EventManager.RemoveListener(EventType.StartGame, OnStart);
+        EventManager.RemoveListener(EventType.StartTrivia, StartTrivia);
     }
 
     private void StartTrivia()
     {
+        if (this == null) { return; }
+        EventManager.InvokeEvent(EventType.Question);
+        PlayerInputManager.DisableJoining();
+
         int playerIndex = 0;
         foreach (PlayerController player in players)
         {
             player.Position.x = (-width / 2 / 100) + (playerIndex + (width / 12 / 100)) * offSet.x;
-            player.Position.y = (-height / 4 / 100);
+            player.Position.y = (-height / 5 / 100);
             playerIndex++;
         }
 
+        if (cartridgeObject == null)
+        {
+            Debug.Log(this);
+            cartridgeObject = GetComponentInChildren<Boss>().gameObject;
+            Debug.Log(cartridgeObject);
+        }
+
         cartridgeObject.SetActive(true);
-        scoreText.gameObject.SetActive(true);
         IsTurn = 1;
         foreach (PlayerController player in players)
         {
@@ -215,6 +252,24 @@ public class GameManager : MonoBehaviour
         if (players.Count == 0) return;
         if (started) { return; }
         EventManager.InvokeEvent(EventType.StartGame);
+    }
+
+    private void RestartTrigger()
+    {
+        EventManager.InvokeEvent(EventType.Restart);
+    }
+
+    private void OnRestart()
+    {
+        if (this == null) { return; }
+        PlayerInputManager inputManager = FindObjectOfType<PlayerInputManager>();
+        inputManager.EnableJoining();
+        healthSlider.value = healthSlider.maxValue;
+        score = 0;
+        gamepads.Clear();
+        cartridgeObject.SetActive(false);
+        players.Clear();
+        spriteRendererMaterial.SetFloat("_Dissolve", 0f);
     }
 
     private void OnStart()
